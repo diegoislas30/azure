@@ -1,0 +1,66 @@
+name: IaC - Terraform Azure (RG)
+
+on:
+  push:
+    branches: [ main, dev, qa, feature/** ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  TF_IN_AUTOMATION: true
+  ARM_TENANT_ID:     ${{ secrets.AZURE_TENANT_ID }}
+  ARM_CLIENT_ID:     ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  ARM_ACCESS_KEY:    ${{ secrets.ARM_ACCESS_KEY }}
+
+jobs:
+  plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          creds: >
+            {"clientId":"${{ secrets.AZURE_CLIENT_ID }}",
+             "clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}",
+             "tenantId":"${{ secrets.AZURE_TENANT_ID }}"}
+      - uses: hashicorp/setup-terraform@v3
+      - name: Terraform Init (state por rama)
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=terraform" \
+            -backend-config="storage_account_name=xpeterraformpoc" \
+            -backend-config="container_name=terraform-tfstate" \
+            -backend-config="key=${{ github.ref_name }}.tfstate"
+      - run: terraform fmt -check
+      - run: terraform validate
+      - run: terraform plan -out=tfplan
+      - uses: actions/upload-artifact@v4
+        with: { name: tfplan, path: tfplan }
+
+  apply:
+    name: Terraform Apply (requires approval)
+    needs: plan
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          creds: >
+            {"clientId":"${{ secrets.AZURE_CLIENT_ID }}",
+             "clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}",
+             "tenantId":"${{ secrets.AZURE_TENANT_ID }}"}
+      - uses: hashicorp/setup-terraform@v3
+      - name: Terraform Init (state por rama)
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=terraform" \
+            -backend-config="storage_account_name=xpeterraformpoc" \
+            -backend-config="container_name=terraform-tfstate" \
+            -backend-config="key=${{ github.ref_name }}.tfstate"
+      - run: terraform plan -out=tfplan
+      - run: terraform apply -auto-approve tfplan
