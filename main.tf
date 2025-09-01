@@ -18,7 +18,7 @@ module "vnet_1" {
 
   subnets = {
     subnet1 = {
-      address_prefix   = "20.0.10.0/24"
+      address_prefix    = "20.0.10.0/24"
       service_endpoints = ["Microsoft.Storage", "Microsoft.Sql"]
     }
 
