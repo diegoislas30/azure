@@ -1,31 +1,53 @@
-name: Terraform Destroy (manual)
+name: Terraform Destroy Manual
 
 on:
-  workflow_dispatch:  # solo manual
+  workflow_dispatch:
+
+env:
+  TF_IN_AUTOMATION: true
+  ARM_TENANT_ID:     ${{ secrets.AZURE_TENANT_ID }}
+  ARM_CLIENT_ID:     ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  ARM_ACCESS_KEY:    ${{ secrets.ARM_ACCESS_KEY }}
 
 jobs:
   destroy:
-    name: Terraform Destroy
+    name: Terraform Destroy (manual)
     runs-on: ubuntu-latest
-
-    environment: prd
+    environment: prd  # ⚠️ Protege este entorno en GitHub > Settings > Environments
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Login to Azure
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          allow-no-subscriptions: true
+          creds: >
+            {"clientId":"${{ secrets.AZURE_CLIENT_ID }}",
+             "clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}",
+             "tenantId":"${{ secrets.AZURE_TENANT_ID }}"}
 
-    - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 1.6.6  # o tu versión deseada
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-    - name: Terraform Init
-      run: terraform init -input=false
+      - name: Terraform Init (tfstate por rama)
+        run: |
+          terraform init -input=false \
+            -backend-config="resource_group_name=terraform" \
+            -backend-config="storage_account_name=xpeterraformpoc" \
+            -backend-config="container_name=terraform-tfstate" \
+            -backend-config="key=${{ github.ref_name }}.tfstate"
 
-    - name: Terraform Destroy
-      run: terraform destroy -auto-approve
+      - name: Terraform Plan (destroy preview)
+        run: terraform plan -destroy -input=false -out=tfplan-destroy
+
+      - name: Publicar plan (destroy)
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-destroy
+          path: tfplan-destroy
+
+      - name: Terraform Destroy
+        run: terraform destroy -input=false -auto-approve
