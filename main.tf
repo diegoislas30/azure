@@ -55,3 +55,4 @@ output "subnet1_id" {
   value       = module.vnet_1.subnet_ids["subnet1"]
   description = "ID de la subnet1"
 }
+
