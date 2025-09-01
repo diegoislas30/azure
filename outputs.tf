@@ -3,4 +3,3 @@ output "resource_group" {
 
 }
 
-# hola como estas!
