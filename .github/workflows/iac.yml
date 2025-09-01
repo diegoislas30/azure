@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # Protege con aprobación previa en Settings → Environments → prod
-    environment: prod
+    environment: prd
 
     steps:
       - name: Checkout
