@@ -28,6 +28,6 @@ module "vnet_1" {
   }
 
   providers = {
-    azurerm = azurerm.xpe_shared_poc   # 🔐 usa el mismo alias que el RG
+    azurerm = azurerm.xpe_shared_poc # 🔐 usa el mismo alias que el RG
   }
 }
