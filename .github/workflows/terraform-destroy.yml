@@ -1,0 +1,31 @@
+name: Terraform Destroy (manual)
+
+on:
+  workflow_dispatch:  # solo manual
+
+jobs:
+  destroy:
+    name: Terraform Destroy
+    runs-on: ubuntu-latest
+
+    environment: prd
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.6.6  # o tu versión deseada
+
+    - name: Terraform Init
+      run: terraform init -input=false
+
+    - name: Terraform Destroy
+      run: terraform destroy -auto-approve
