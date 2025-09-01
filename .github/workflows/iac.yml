@@ -50,22 +50,26 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan -input=false -out=tfplan \
-          -var="resource_group_name=mi-grupo" \
-          -var="location=eastus"
+        run: |
+          terraform plan -input=false \
+            -var="resource_group_name=mi-grupo" \
+            -var="location=eastus"
 
-      - name: Publicar plan
-        uses: actions/upload-artifact@v4
-        with:
-          name: tfplan
-          path: tfplan
+      - name: Publicar plan (opcional)
+        if: success()
+        run: echo "Plan exitoso"
+        # Si deseas guardar un tfplan, descomenta esto:
+        # uses: actions/upload-artifact@v4
+        # with:
+        #   name: tfplan
+        #   path: tfplan
 
   apply:
     name: Terraform Apply (requires approval)
     needs: plan
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
-    environment: prd
+    environment: prd  # Protege esto en GitHub > Settings > Environments
 
     steps:
       - name: Checkout
@@ -91,10 +95,5 @@ jobs:
             -backend-config="container_name=terraform-tfstate" \
             -backend-config="key=${{ github.ref_name }}.tfstate"
 
-      - name: Terraform Plan (apply)
-        run: terraform plan -input=false -out=tfplan \
-          -var="resource_group_name=mi-grupo" \
-          -var="location=eastus"
-
       - name: Terraform Apply
-        run: terraform apply -input=false -auto-approve tfplan
+        run: terraform apply -input=false -auto-approve
