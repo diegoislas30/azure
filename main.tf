@@ -11,8 +11,8 @@ module "resource_group_1" {
 module "vnet_1" {
   source              = "./modules/vnets"
   vnet_name           = "vnet-ejemplo"
-  resource_group_name = module.resource_group_1.resource_group_name      # ✅
-  location            = module.resource_group_1.resource_group_location  # ✅
+  resource_group_name = module.resource_group_1.resource_group_name     # ✅
+  location            = module.resource_group_1.resource_group_location # ✅
   address_space       = ["20.0.0.0/16"]
 
   subnets = {
