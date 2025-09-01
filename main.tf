@@ -2,7 +2,7 @@ module "resource_group_1" {
   source              = "./modules/resource_group"
   resource_group_name = "rg-ejemplo"
   location            = "eastus"
-  
+
 
   providers = {
     azurerm = azurerm.xpe_shared_poc
@@ -19,11 +19,11 @@ module "vnet_1" {
 
   subnets = {
     subnet1 = {
-      address_prefix  = "20.0.10.0/24"
+      address_prefix    = "20.0.10.0/24"
       service_endpoints = ["Microsoft.Storage", "Microsoft.Sql"]
     }
 
-}
+  }
 
   tags = {
     environment = "dev"
