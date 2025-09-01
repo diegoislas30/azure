@@ -13,3 +13,6 @@ output "resource_group_1_location" {
   description = "Resource group location"
   value       = module.resource_group_1.resource_group_location
 }
+
+
+#
