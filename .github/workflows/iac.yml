@@ -47,7 +47,7 @@ jobs:
         run: terraform fmt -check
 
       - name: Terraform Validate
-        run: terraform validate -input=false
+        run: terraform validate
 
       - name: Terraform Plan
         run: terraform plan -input=false -out=tfplan
@@ -63,8 +63,7 @@ jobs:
     needs: plan
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
-
-    environment: prd
+    environment: prd  # ← Protege esto en GitHub > Settings > Environments
 
     steps:
       - name: Checkout
