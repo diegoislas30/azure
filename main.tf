@@ -15,24 +15,21 @@ module "vnet_1" {
   resource_group_name = module.resource_group_1.resource_group_name
   location            = module.resource_group_1.location
   address_space       = ["20.0.0.0/16"]
-  dns_servers         = ["8.8.8.8"]
 
   subnets = {
     subnet1 = {
-      address_prefix    = "20.0.10.0/24"
+      address_prefix   = "20.0.10.0/24"
       service_endpoints = ["Microsoft.Storage", "Microsoft.Sql"]
     }
+
 
   }
 
   tags = {
-    environment = "dev"
+    environment = "poc"
     project     = "xpertal"
-  }
-
-  providers = {
-    azurerm = azurerm.xpe_shared_poc
   }
 
 
 }
+
