@@ -15,4 +15,3 @@ output "resource_group_1_location" {
 }
 
 
-#
