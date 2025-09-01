@@ -7,14 +7,11 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-# Variables de entorno comunes a todos los jobs
 env:
   TF_IN_AUTOMATION: true
-  # Credenciales del Service Principal (ponlas como GitHub Secrets)
   ARM_TENANT_ID:     ${{ secrets.AZURE_TENANT_ID }}
   ARM_CLIENT_ID:     ${{ secrets.AZURE_CLIENT_ID }}
   ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-  # Access key del Storage Account donde se guarda el tfstate remoto
   ARM_ACCESS_KEY:    ${{ secrets.ARM_ACCESS_KEY }}
 
 jobs:
@@ -26,7 +23,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ✅ Plan B: iniciamos sesión SIN subscriptionId
       - name: Azure Login (no subscription)
         uses: azure/login@v2
         with:
@@ -41,7 +37,7 @@ jobs:
 
       - name: Terraform Init (tfstate por rama)
         run: |
-          terraform init \
+          terraform init -input=false \
             -backend-config="resource_group_name=terraform" \
             -backend-config="storage_account_name=xpeterraformpoc" \
             -backend-config="container_name=terraform-tfstate" \
@@ -51,10 +47,10 @@ jobs:
         run: terraform fmt -check
 
       - name: Terraform Validate
-        run: terraform validate
+        run: terraform validate -input=false
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
+        run: terraform plan -input=false -out=tfplan
 
       - name: Publicar plan
         uses: actions/upload-artifact@v4
@@ -68,14 +64,12 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
 
-    # Protege con aprobación previa en Settings → Environments → prod
     environment: prd
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ✅ Plan B también aquí
       - name: Azure Login (no subscription)
         uses: azure/login@v2
         with:
@@ -90,14 +84,14 @@ jobs:
 
       - name: Terraform Init (tfstate por rama)
         run: |
-          terraform init \
+          terraform init -input=false \
             -backend-config="resource_group_name=terraform" \
             -backend-config="storage_account_name=xpeterraformpoc" \
             -backend-config="container_name=terraform-tfstate" \
             -backend-config="key=${{ github.ref_name }}.tfstate"
 
       - name: Terraform Plan (apply)
-        run: terraform plan -out=tfplan
+        run: terraform plan -input=false -out=tfplan
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -input=false -auto-approve tfplan

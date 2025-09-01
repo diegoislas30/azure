@@ -1,7 +1,9 @@
 variable "resource_group_name" {
-  type = string
+  description = "Nombre del Resource Group"
+  type        = string
 }
 
 variable "location" {
-  type = string
+  description = "Región de despliegue"
+  type        = string
 }
