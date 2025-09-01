@@ -11,8 +11,8 @@ module "resource_group_1" {
 module "vnet_1" {
   source              = "./modules/vnets"
   vnet_name           = "vnet-ejemplo"
-  resource_group_name = module.resource_group_1.name
-  location            = module.resource_group_1.location
+  resource_group_name = module.resource_group_1.resource_group_name      # ✅
+  location            = module.resource_group_1.resource_group_location  # ✅
   address_space       = ["20.0.0.0/16"]
 
   subnets = {
@@ -28,6 +28,6 @@ module "vnet_1" {
   }
 
   providers = {
-    azurerm = azurerm.xpe_shared_poc # 🔐 usa el mismo alias que el RG
+    azurerm = azurerm.xpe_shared_poc
   }
 }
