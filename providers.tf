@@ -8,7 +8,7 @@ provider "azurerm" {
 }
 
 provider "azurerm" {
-  alias           = "xpe_shared_poc"
-  features        {}
+  alias = "xpe_shared_poc"
+  features {}
   subscription_id = "bc444e87-bfcd-4aeb-93f9-9a52b1089062"
 }
