@@ -8,7 +8,7 @@ output "resource_group_location" {
     value       = azurerm_resource_group.this.location
 }
 
-output "resource_group_id" {
+output "id" {
     description = "The ID of the resource group."
     value       = azurerm_resource_group.this.id
 }
