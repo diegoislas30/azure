@@ -37,32 +37,33 @@ variable "dns_servers" {
 variable "tags" {
   description = "Etiquetas obligatorias para la VNET."
   type = object({
-    UDN       = string
-    OWNER     = string
-    xpeowner  = string
-    proyecto  = string
-    ambiente  = string
+    UDN      = string
+    OWNER    = string
+    xpeowner = string   # <- usa SIEMPRE el mismo nombre en root y en el módulo
+    proyecto = string
+    ambiente = string
   })
   # sin default => OBLIGATORIA
 
   # No permitir valores vacíos
   validation {
     condition = alltrue([
-      length(trim(var.tags.UDN))       > 0,
-      length(trim(var.tags.OWNER))     > 0,
-      length(trim(var.tags.xpewoner))  > 0,
-      length(trim(var.tags.proyecto))  > 0,
-      length(trim(var.tags.ambiente))  > 0
+      length(trimspace(var.tags.UDN))      > 0,
+      length(trimspace(var.tags.OWNER))    > 0,
+      length(trimspace(var.tags.xpeowner)) > 0,
+      length(trimspace(var.tags.proyecto)) > 0,
+      length(trimspace(var.tags.ambiente)) > 0
     ])
-    error_message = "Todas las tags (UDN, OWNER, xpewoner, proyecto, ambiente) deben tener valor."
+    error_message = "Todas las tags (UDN, OWNER, xpeowner, proyecto, ambiente) deben tener valor."
   }
 
-  # Ambiente permitido (ajústalo a tu catálogo)
+  # Ambiente permitido
   validation {
-    condition     = contains(["dev","qa","prod","poc"], lower(var.tags.ambiente))
+    condition     = contains(["dev","qa","prod","poc"], lower(trimspace(var.tags.ambiente)))
     error_message = "tags.ambiente debe ser dev, qa, prod o poc."
   }
 }
+
 
 # 8-12) Subnets (múltiples)
 variable "subnets" {

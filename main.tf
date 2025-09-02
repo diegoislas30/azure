@@ -20,7 +20,7 @@ module "vnet_xpeteraform_poc" {
   source              = "./modules/vnets"
   vnet_name           = "xpeteraformpoc-vnet"
   resource_group_name = module.resource_group_1.resource_group_name
-  location            = module.resource_group_1.location
+  location            = module.resource_group_1.resource_group_location
   address_space       = ["20.0.0.0/16"]
   dns_servers         = []
   tags = {
