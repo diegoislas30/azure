@@ -4,12 +4,14 @@ module "resource_group_xpe_rg_001" {
   location            = "southcentralus"
 
   tags = {
-    UDN         = "Xpertal"
-    OWNER       = "Diego Islas"
-    xpeowner    = "diegoenrique.islas@xpertal.com"
-    proyecto    = "Terraform"
-    ambiente    = "Dev"
-  
-  }
-}
+    UDN = "Xpertal"
+    OWNER     = "Diego Enrique Islas Cuervo"
+    xpeowner = "dislas@caabsa.com.mx"
+    proyecto = "Terraform"
+    ambiente = "DEV"
     
+  }
+
+  providers = { azurerm = azurerm.xpe_shared_poc}
+
+}
