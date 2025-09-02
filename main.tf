@@ -81,10 +81,6 @@ module "virtual_machine_xpe_vm_001" {
   os_disk_size_gb     = 127
   data_disks          = []
 
-  # Adjunta el NSG externo del módulo anterior
-  nsg_id              = module.nsg_1.nsg_id
-  create_builtin_nsg  = false
-  allow_rdp_from_cidr = null
 
   tags = {
     UDN      = "Xpertal"
