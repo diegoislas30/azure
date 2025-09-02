@@ -6,7 +6,7 @@ module "resource_group_1" {
   tags = {
     UDN       = "udn-001"
     OWNER     = "diego.islas"
-    xpewoner  = "equipo-xpe"
+    xpeowner  = "equipo-xpe"
     proyecto  = "xpertal"
     ambiente  = "poc"
   }
