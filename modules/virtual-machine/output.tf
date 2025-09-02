@@ -1,14 +1,14 @@
 output "vm_id" {
-  value       = azurerm_windows_virtual_machine.this.id
   description = "ID de la VM"
+  value       = azurerm_windows_virtual_machine.this.id
 }
 
 output "nic_id" {
-  value       = azurerm_network_interface.this.id
   description = "ID de la NIC"
+  value       = azurerm_network_interface.this.id
 }
 
 output "private_ip" {
-  value       = azurerm_network_interface.this.private_ip_address
   description = "IP privada de la VM"
+  value       = azurerm_network_interface.this.private_ip_address
 }

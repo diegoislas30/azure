@@ -1,78 +1,67 @@
 variable "vm_name" {
-    type = string
-    description = "Nombre de la máquina virtual"
+  description = "Nombre de la VM"
+  type        = string
 }
 
 variable "resource_group_name" {
-    type = string
-    description = "Nombre del resource group"
+  description = "Resource Group destino"
+  type        = string
 }
 
 variable "location" {
-    type = string
-    description = "Ubicación de la máquina virtual"
-}
-
-variable "tags" {
-    type = object({
-        UDN = string
-        OWNER = string
-        xpeowner = string
-        proyecto = string
-        ambiente = string
-    })
+  description = "Región de Azure"
+  type        = string
 }
 
 variable "subnet_id" {
-    type = string
-    description = "ID de la subred"
+  description = "ID de la subnet para la NIC"
+  type        = string
 }
 
-
 variable "vm_size" {
-    type = string
-    description = "Tamaño de la máquina virtual"
-    default = "Standard_B1s"
-
+  description = "Tamaño de la instancia"
+  type        = string
+  default     = "Standard_D2s_v3"
 }
 
 variable "admin_username" {
-    type = string
-    description = "Nombre de usuario administrador"
-    default = "guestfemsa"
+  description = "Usuario admin local"
+  type        = string
+  default     = "azureadmin"
 }
 
 variable "admin_password" {
-    type = string
-    description = "Contraseña administrador"
-    default = "ZaVeCer1029Adm"
-}
-
-variable "os_disk_name" {
-    type = string
-    description = "Nombre del disco de sistema"
-    default = "osdisk"
+  description = "Password admin (mejor usar KeyVault/secret en CI)"
+  type        = string
+  sensitive   = true
+  default     = "ChangeMe!12345"
 }
 
 variable "os_disk_size_gb" {
-    type = number
-    description = "Tamaño del disco de sistema"
-    default = 127
+  description = "Tamaño del OS disk"
+  type        = number
+  default     = 127
 }
 
 variable "data_disks" {
-  description = "Lista de discos de datos"
+  description = "Discos de datos"
   type = list(object({
-    lun          = number
-    size_gb      = number
-    caching      = string
-    storage_type = string
+    lun           = number
+    size_gb       = number
+    caching       = string            # None | ReadOnly | ReadWrite
+    storage_type  = string            # StandardSSD_LRS | Premium_LRS | ...
   }))
   default = []
 }
 
+variable "allow_rdp_from_cidr" {
+  description = "CIDR permitido para RDP (ej. 10.0.0.0/8). Si null, todo inbound denegado."
+  type        = string
+  default     = null
+}
 
-
-
-
-
+variable "tags" {
+  description = "Etiquetas"
+  type        = map(string)
+  default     = {}
+}
