@@ -38,8 +38,8 @@ module "resource_group_xpe_rg_002" {
 module "vnet_xpe_vnet_001" {
   source              = "./modules/vnets"
   vnet_name           = "xpe-vnet-001"
-  resource_group_name = "module.resource_group_xpe_rg_001.resource_group_name"
-  location            = "module.resource_group_xpe_rg_001.resource_group_location"
+  resource_group_name = "module.resource_group_xpe_rg_001.resource_group_xpe_rg_001_name"
+  location            = "module.resource_group_xpe_rg_001.resource.group_xpe_rg_001_location"
 
   tags = {
     UDN = "Xpertal"
