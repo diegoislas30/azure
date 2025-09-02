@@ -1,18 +1,14 @@
-## crear el primer grupo de recursos y mandalo a llamar desde el modulo de resources group. 
-
-module "resource_group" {
+module "resource_group_xpe_rg_001" {
   source              = "./modules/resource_group"
   resource_group_name = "xpe-rg-001"
-  location            = "South Central US"
+  location            = "East US"
 
   tags = {
-    UDN = "Xpertal"
-    OWNER = "Diego Enrique Islas"
+    UDN = "xpertal"
+    OWNER = "Diego Islas"
     xpeowner = "diegoenrique.islas@xpertal.com"
-    proyecto = "Poc Terraform"
-    ambiente = "DEV"
+    proyecto = "Terraform"
+    ambiente = "Dev"
   }
-  
-}
 
-  
+  providers = { azurerm = azurerm.xpe_shared_poc }
