@@ -26,7 +26,11 @@ module "resource_group_xpeterraformpoc" {
   resource_group_name = "xpeterraformpoc2-rg"
   location            = "southcentralus"
   tags = {
-      
+    UDN      = "Xpertal"
+    OWNER    = "Guillermo Yam"
+    xpeowner = "guillermo.yam@xpertal.com"
+    proyecto = "terraform"
+    ambiente = "dev"   
 }
 
 providers = {
