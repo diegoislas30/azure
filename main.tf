@@ -20,7 +20,7 @@ providers = {
 ## Recurso generado por Yam
 
 
-module "resource_group_xpeterraformpoc" {
+module "resource_group_xpeterraformpoc2" {
   source = "./modules/resource_group"
 
   resource_group_name = "xpeterraformpoc2-rg"
