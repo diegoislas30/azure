@@ -15,7 +15,6 @@ resource "azurerm_subnet" "this" {
   address_prefixes     = [each.value.address_prefix]
   service_endpoints    = lookup(each.value, "service_endpoints", [])
 
-  private_endpoint_network_policies_enabled      = lookup(each.value, "private_endpoint_network_policies", true)
   private_link_service_network_policies_enabled  = lookup(each.value, "private_link_service_network_policies", true)
 }
 
