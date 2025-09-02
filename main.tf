@@ -45,11 +45,11 @@ module "vnet_xpeteraform_poc" {
       route_table_id = null
       service_endpoints = []
     }
-
-   providers = {
-    azurerm = azurerm.xpe_shared_poc
-    }
   
+  }
+
+  providers = {
+    azurerm = azurerm.xpe_shared_poc
   }
 
 }
