@@ -33,16 +33,38 @@ variable "dns_servers" {
   default     = []
 }
 
-# 7) Tags
+# 7) Tags (OBLIGATORIAS con claves fijas)
 variable "tags" {
-  type        = map(string)
-  description = "Etiquetas a aplicar."
-  default     = {}
+  description = "Etiquetas obligatorias para la VNET."
+  type = object({
+    UDN       = string
+    OWNER     = string
+    xpewoner  = string
+    proyecto  = string
+    ambiente  = string
+  })
+  # sin default => OBLIGATORIA
+
+  # No permitir valores vacíos
+  validation {
+    condition = alltrue([
+      length(trim(var.tags.UDN))       > 0,
+      length(trim(var.tags.OWNER))     > 0,
+      length(trim(var.tags.xpewoner))  > 0,
+      length(trim(var.tags.proyecto))  > 0,
+      length(trim(var.tags.ambiente))  > 0
+    ])
+    error_message = "Todas las tags (UDN, OWNER, xpewoner, proyecto, ambiente) deben tener valor."
+  }
+
+  # Ambiente permitido (ajústalo a tu catálogo)
+  validation {
+    condition     = contains(["dev","qa","prod","poc"], lower(var.tags.ambiente))
+    error_message = "tags.ambiente debe ser dev, qa, prod o poc."
+  }
 }
 
 # 8-12) Subnets (múltiples)
-# La CLAVE del mapa es el nombre de la subnet (9)
-# El valor incluye el prefijo (10) y asociaciones opcionales (11,12)
 variable "subnets" {
   description = <<EOT
 Mapa de subnets: nombre => configuración. Ejemplo:
@@ -69,7 +91,6 @@ EOT
 }
 
 # 5) Peerings (opcional)
-# Lista de peerings hacia VNETs remotas.
 variable "peerings" {
   description = <<EOT
 Lista de peerings VNET-VNET. Ejemplo:
@@ -90,7 +111,7 @@ EOT
     remote_virtual_network_id       = string
     allow_virtual_network_access    = optional(bool, true)
     allow_forwarded_traffic         = optional(bool, true)
-    allow_gateway_transit          = optional(bool, false)
+    allow_gateway_transit           = optional(bool, false)
     use_remote_gateways             = optional(bool, false)
   }))
   default = []

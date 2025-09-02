@@ -14,7 +14,6 @@ variable "id" {
   default     = null
 }
 
-
 variable "tags" {
   description = "A mapping of tags to assign to the resource group"
   type        = object({
