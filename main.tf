@@ -37,3 +37,24 @@ providers = {
     azurerm = azurerm.xpe_shared_poc
   }
 }
+
+## Recurso generado pedro 
+
+
+module "resource_group_xpeterraformpoc3" {
+  source = "./modules/resource_group"
+
+  resource_group_name = "xpeterraformpoc3-rg"
+  location            = "southcentralus"
+  tags = {
+    UDN      = "Xpertal"
+    OWNER    = "Pedro Guerrero"
+    xpeowner = "pedrojulio.guerrero@xpertal.com"
+    proyecto = "terraform"
+    ambiente = "QA"   
+}
+
+providers = {
+    azurerm = azurerm.xpe_shared_poc
+  }
+}
