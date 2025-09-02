@@ -63,4 +63,6 @@ module "vnet_xpe_vnet_001" {
 
     }
   }
+
+  providers = { azurerm = azurerm.xpe_shared_poc}
 }
