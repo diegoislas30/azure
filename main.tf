@@ -31,7 +31,7 @@ module "vnet_1" {
     }
 
     subnet2 = {
-      address_prefix = "20.20.0.0/24"
+      address_prefix = "20.0.20.0/24"
       nsg_id         = null
       route_table_id = null
       service_endpoints = []
