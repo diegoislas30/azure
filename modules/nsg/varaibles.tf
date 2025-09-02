@@ -28,4 +28,8 @@ variable "security_rules" {
     protocol                   = string                 # Tcp | Udp | *
     source_port_range          = string                 # "*" o puerto/rango
     destination_port_range     = string                 # "*" o puerto/rango
-    source_address_prefix      =
+    source_address_prefix      = string                 # "*" | CIDR | VirtualNetwork | Internet...
+    destination_address_prefix = string                 # "*" | CIDR | VirtualNetwork | Internet...
+  }))
+  default = {}
+}
