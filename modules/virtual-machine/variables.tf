@@ -54,6 +54,7 @@ variable "data_disks" {
   default = []
 }
 
+
 # Reglas mínimas dentro del módulo (solo si se crea NSG interno)
 variable "allow_rdp_from_cidr" {
   description = "CIDR permitido para RDP. Si es null, no se crea regla (todo inbound denegado)."
