@@ -16,3 +16,20 @@ providers = {
   }
 }
 
+
+## Recurso generado por Yam
+
+
+module "resource_group_xpeterraformpoc" {
+  source = "./modules/resource_group"
+
+  resource_group_name = "xpeterraformpoc2-rg"
+  location            = "southcentralus"
+  tags = {
+      
+}
+
+providers = {
+    azurerm = azurerm.xpe_shared_poc
+  }
+}
