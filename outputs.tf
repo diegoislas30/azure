@@ -1,16 +1,15 @@
-output "resource_group_xpe_rg_001_name" {
+output "resource_group_xpeterraformpoc_name" {
   description = "Resource group name"
-  value       = module.resource_group_xpe_rg_001.resource_group_name
+  value       = module.resource_group_xpeterraformpoc.resource_group_name
 }
 
-output "resource_group_xpe_rg_001_id" {
-  description = "Resource group id"
-  value       = module.resource_group_xpe_rg_001.id     # <-- antes ponías resource_group_id (no existe)
-}
-
-output "resource_group_xpe_rg_001_location" {
+output "resource_group_xpeterraformpoc_location" {
   description = "Resource group location"
-  value       = module.resource_group_xpe_rg_001.resource_group_location
+  value       = module.resource_group_xpeterraformpoc.resource_group_location
 }
 
+output "resource_group_xpeterraformpoc_id" {
+  description = "Resource group ID"
+  value       = module.resource_group_xpeterraformpoc.id
+}
 
