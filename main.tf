@@ -55,6 +55,25 @@ module "vnet_xpeteraform_poc" {
 }
 
 
+module "resource_group_2" {
+  source              = "./modules/resource_group"
+  resource_group_name = "xpeterraformpoc-rg2"
+  location            = "southcentralus"
+
+  tags = {
+    UDN       = "udn-001"
+    OWNER     = "diego.islas"
+    xpeowner  = "equipo-xpe"
+    proyecto  = "xpertal"
+    ambiente  = "poc"
+  }
+
+  providers = {
+    azurerm = azurerm.xpe_shared_poc
+  }
+}
+
+
 
 
 #comentario de prueba
