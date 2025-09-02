@@ -7,18 +7,20 @@ resource "azurerm_network_interface" "this" {
     name                          = "internal"
     subnet_id                     = var.subnet_id
     private_ip_address_allocation = "Dynamic"
-    # Sin IP pública (no public_ip_address_id)
+    # Sin IP pública
   }
 
   tags = var.tags
 }
 
+# NSG interno opcional
 resource "azurerm_network_security_group" "this" {
+  count               = var.create_builtin_nsg && var.nsg_id == null ? 1 : 0
   name                = "${var.vm_name}-nsg"
   location            = var.location
   resource_group_name = var.resource_group_name
 
-  # (Opcional) Permitir RDP desde un CIDR controlado
+  # Regla opcional para RDP desde un CIDR
   dynamic "security_rule" {
     for_each = var.allow_rdp_from_cidr == null ? [] : [var.allow_rdp_from_cidr]
     content {
@@ -50,9 +52,18 @@ resource "azurerm_network_security_group" "this" {
   tags = var.tags
 }
 
-resource "azurerm_network_interface_security_group_association" "assoc" {
+# Asociación de NSG interno
+resource "azurerm_network_interface_security_group_association" "assoc_builtin" {
+  count                     = var.create_builtin_nsg && var.nsg_id == null ? 1 : 0
   network_interface_id      = azurerm_network_interface.this.id
-  network_security_group_id = azurerm_network_security_group.this.id
+  network_security_group_id = azurerm_network_security_group.this[0].id
+}
+
+# Asociación de NSG externo
+resource "azurerm_network_interface_security_group_association" "assoc_external" {
+  count                     = var.nsg_id != null ? 1 : 0
+  network_interface_id      = azurerm_network_interface.this.id
+  network_security_group_id = var.nsg_id
 }
 
 resource "azurerm_windows_virtual_machine" "this" {
@@ -97,8 +108,6 @@ resource "azurerm_windows_virtual_machine" "this" {
   patch_mode                 = "AutomaticByOS"
   provision_vm_agent         = true
   allow_extension_operations = true
-
-  # Buenas prácticas extra
   secure_boot_enabled        = true
   vtpm_enabled               = true
 
