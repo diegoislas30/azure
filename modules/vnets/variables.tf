@@ -39,7 +39,7 @@ variable "tags" {
   type = object({
     UDN       = string
     OWNER     = string
-    xpewoner  = string
+    xpeowner  = string
     proyecto  = string
     ambiente  = string
   })
