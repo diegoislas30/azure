@@ -24,17 +24,16 @@ variable "dns_servers" {
   default     = []
 }
 
-variable tags {
-  description = "A mapping of tags to assign to the resource."
-  type        = map(string)
-  default     = {
-    UDN      = string
-    OWNER    = string
-    xpeowner = string
-    proyecto = string
-    ambiente = string
-
-  }
+variable "tags" {
+  description = "A mapping of tags to assign to the resource group"
+  type        = object({
+    UDN       = string
+    OWNER     = string
+    xpeowner  = string
+    proyecto  = string
+    ambiente  = string
+  })
+  
 }
 
 # Mapa de subnets a crear: cada clave es el nombre de la subnet
@@ -50,3 +49,29 @@ variable "subnets" {
   }))
   default = {}
 }
+
+# NUEVO: definición opcional de peerings DESDE ESTA VNET hacia otras+
+
+variable "peerings" {
+  description = <<EOT
+Lista de peerings que se crearán DESDE esta VNET hacia otras.
+Ojo: el peering en Azure es bidireccional — necesitas crear el par en la VNET remota también (o desde este módulo, apuntando a ambas).
+Campos:
+- name: nombre del peering (único en esta VNET)
+- remote_virtual_network_id: ID de la VNET remota (de otro módulo o existente)
+- allow_virtual_network_access: (default true) permite tráfico VNet<->VNet
+- allow_forwarded_traffic: (default true) permite tráfico reenviado (NVA)
+- allow_gateway_transit: (default false) habilita tránsito de gateway (en el HUB)
+- use_remote_gateways: (default false) usa el gateway remoto (en el SPOKE)
+EOT
+  type = list(object({
+    name                         = string
+    remote_virtual_network_id    = string
+    allow_virtual_network_access = optional(bool, true)
+    allow_forwarded_traffic      = optional(bool, true)
+    allow_gateway_transit        = optional(bool, false)
+    use_remote_gateways          = optional(bool, false)
+  }))
+  default = []
+}
+
