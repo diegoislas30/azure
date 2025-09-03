@@ -1,45 +1,35 @@
-output "vnet_name" {
-  description = "The name of the Virtual Network."
-  value       = azurerm_virtual_network.this.name
-}
-
-output "resource_group_name" {
-  description = "The name of the resource group in which the Virtual Network is created."
-  value       = azurerm_virtual_network.this.resource_group_name
-}
-
-output "resource_group_location" {
-  description = "The location of the resource group in which the Virtual Network is created."
-  value       = azurerm_virtual_network.this.location
-}
-
 output "vnet_id" {
-  description = "The ID of the Virtual Network."
+  description = "ID de la VNET"
   value       = azurerm_virtual_network.this.id
 }
 
+output "vnet_name" {
+  description = "Nombre de la VNET"
+  value       = azurerm_virtual_network.this.name
+}
+
+output "vnet_address_space" {
+  description = "Address space de la VNET"
+  value       = azurerm_virtual_network.this.address_space
+}
+
 output "subnet_ids" {
-  description = "A mapping of subnet names to their IDs."
-  value       = { for s in azurerm_subnet.this : s.name => s.id }
+  description = "Mapa nombre_subnet => subnet_id"
+  value       = { for k, s in azurerm_subnet.this : k => s.id }
 }
 
-output "route_table_ids" {
-  description = "A mapping of route table names to their IDs."
-  value       = { for rt in azurerm_route_table.this : rt.name => rt.id }
+output "subnet_names" {
+  description = "Mapa nombre_subnet => nombre"
+  value       = { for k, s in azurerm_subnet.this : k => s.name }
 }
 
-output "vnet_peering_ids" {
-  description = "A mapping of virtual network peering names to their IDs."
-  value       = { for p in azurerm_virtual_network_peering.this : p.name => p.id }
+output "subnet_prefixes" {
+  description = "Mapa nombre_subnet => lista de CIDRs"
+  value       = { for k, s in azurerm_subnet.this : k => s.address_prefixes }
 }
 
-output "tags" {
-  description = "A mapping of tags assigned to the Virtual Network."
-  value       = azurerm_virtual_network.this.tags
+# NUEVOS
+output "peering_ids" {
+  description = "IDs de los peerings creados (clave = nombre del peering)"
+  value       = { for k, p in azurerm_virtual_network_peering.this : k => p.id }
 }
-
-output "dns_servers" {
-  description = "A list of DNS servers IP addresses assigned to the Virtual Network."
-  value       = azurerm_virtual_network.this.dns_servers
-}
-
