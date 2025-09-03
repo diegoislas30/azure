@@ -59,33 +59,43 @@ providers = {
   }
 }
 
-module "vnet_xpeterraformpoc" {
+
+module "vnets_xpeterraformpoc" {
   source = "./modules/vnets"
 
-  vnet_name            = "xpeterraformpoc-vnet"
-  resource_group_name  = module.resource_group_xpeterraformpoc.resource_group_name
-  location             = module.resource_group_xpeterraformpoc.resource_group_location
-  address_space        = ["20.0.0.0/16"]
-  dns_servers          = []
-  tags                 =  {
+  vnet_name           = "xpeterraformpoc-vnet"
+  address_space       = ["20.0.0.0/16"]
+  location            = module.resource_group_xpeterraformpoc.resource_group_location
+  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
+  dns_servers         = []
+  tags                = {
     UDN      = "Xpertal"
     OWNER    = "Diego Enrique Islas Cuervo"
     xpeowner = "diegoenrique.islas@xpertal.com"
     proyecto = "terraform"
     ambiente = "dev"
+
   }
 
-  subnets = {
-    subnet1 = {
-      address_prefix = "20.0.10.0/24"
-      nsg_id         = null
-      route_table_id = null
-      service_endpoints = ["Microsoft.Storage"]
+  subnets = [
+    {
+      name             = "snet-app"
+      address_prefixes = ["20.0.10.0/24"]
+      service_endpoints = ["Microsoft.Storage", "Microsoft.Sql"]
+      private_endpoint_network_policies = "Disabled"
+    },
+    {
+      name             = "snet-db"
+      address_prefixes = ["20.0.20.0 /24"]
+      service_endpoints = ["Microsoft.Storage", "Microsoft.Sql"]
+      private_endpoint_network_policies = "Disabled"
     }
-  }
 
-providers = {
+  ]
+
+  providers = {
     azurerm = azurerm.xpe_shared_poc
   }
 }
+
 
