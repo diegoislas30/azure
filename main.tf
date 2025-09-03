@@ -58,3 +58,23 @@ providers = {
     azurerm = azurerm.xpe_shared_poc
   }
 }
+
+module "vnet_xpeterraformpoc" {
+  source = "./modules/vnets"
+
+  vnet_name            = "xpeterraformpoc-vnet"
+  resource_group_name  = module.resource_group_xpeterraformpoc.resource_group_name
+  location             = module.resource_group_xpeterraformpoc.location
+  address_space        = ["20.0.0.0/16"]
+  dns_servers          = []
+  tags                 = module.resource_group_xpeterraformpoc.tags
+  subnets = {
+    subnet1 = {
+      address_prefix = "20.0.10.0/24"
+      nsg_id         = null
+      route_table_id = null
+      service_endpoints = ["Microsoft.Storage"]
+    }
+  }
+}
+
