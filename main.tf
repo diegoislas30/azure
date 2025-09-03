@@ -65,7 +65,7 @@ module "vnets_xpeterraformpoc" {
   source              = "./modules/vnets"
   vnet_name           = "xpeterraformpoc-vnet"
   resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
-  location            = module.resource_group_xpeterraformpoc.location
+  location            = module.resource_group_xpeterraformpoc.resource_group_location
   address_space       = ["20.0.10.0/16"]
   dns_servers         = []
   tags                = {
