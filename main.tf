@@ -66,7 +66,7 @@ module "vnets_xpeterraformpoc" {
   vnet_name           = "xpeterraformpoc-vnet"
   resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
   location            = module.resource_group_xpeterraformpoc.resource_group_location
-  address_space       = ["20.0.10.0/16"]
+  address_space       = ["20.0.0.0/16"]
   dns_servers         = []
   tags                = {
     UDN      = "Xpertal"
@@ -77,7 +77,7 @@ module "vnets_xpeterraformpoc" {
   }
   subnets = {
     subnet1 = {
-      address_prefix = "20.0.20.0/24"
+      address_prefix = "20.0.10.0/24"
       nsg_id         = null
       route_table_id = null
       service_endpoints = ["Microsoft.Storage","Microsoft.Sql"]
