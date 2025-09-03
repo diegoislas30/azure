@@ -83,5 +83,9 @@ module "vnet_xpeterraformpoc" {
       service_endpoints = ["Microsoft.Storage"]
     }
   }
+
+providers = {
+    azurerm = azurerm.xpe_shared_poc
+  }
 }
 
