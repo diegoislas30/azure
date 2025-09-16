@@ -60,36 +60,27 @@ providers = {
 }
 
 
-module "vnets_xpeterraformpoc" {
-  
-  source              = "./modules/vnets"
-  vnet_name           = "xpeterraformpoc-vnet"
-  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
-  location            = module.resource_group_xpeterraformpoc.resource_group_location
-  address_space       = ["20.0.0.0/16"]
-  dns_servers         = []
-  tags                = {
+module "vnet_simple" {
+  source              = "./modules/vnet"
+  vnet_name           = "vnet-simple"
+  resource_group_name = "rg-network-prd"
+  location            = "eastus"
+  address_space       = ["10.10.0.0/16"]
+
+  subnet_name   = "subnet-apps"
+  subnet_prefix = "10.10.1.0/24"
+
+  tags = {
     UDN      = "Xpertal"
     OWNER    = "Diego Enrique Islas Cuervo"
     xpeowner = "diegoenrique.islas@xpertal.com"
     proyecto = "terraform"
     ambiente = "dev"
   }
-  subnets = {
-    subnet1 = {
-      address_prefix = "20.0.10.0/24"
-      nsg_id         = null
-      route_table_id = null
-      service_endpoints = ["Microsoft.Storage","Microsoft.Sql"]
-      private_endpoint_network_policies     = true
-      private_link_service_network_policies = true
-    }
-
-  }
 
   providers = {
     azurerm = azurerm.xpe_shared_poc
   }
-}
 
-## prueba de yam
+  
+}
