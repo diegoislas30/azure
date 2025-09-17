@@ -19,13 +19,15 @@ variable "address_space" {
 }
 
 variable "subnet_name" {
-  description = "The name of the subnet within the Virtual Network."
+  description = "The name of the subnet."
   type        = string
+  default     = "default"
 }
 
 variable "subnet_prefix" {
-  description = "The address prefix for the subnet."
+  description = "The address prefix to use for the subnet."
   type        = string
+  default     = "default"
 }
 
 variable "nsg_id" {

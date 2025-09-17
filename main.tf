@@ -60,16 +60,14 @@ providers = {
 }
 
 module "vnet_xpterraformpoc" {
-  source              = "./modules/vnets"
-  resource_group_name = module.resource_group_xpterraformpoc.resource_group_name
-  location            = module.resource_group_xpterraformpoc.location
-  vnet_name           = "xpterraformpoc-vnet"
-  address_space       = ["20.0.0.0/16"]
+  source              = "./modules/vnet"
+  vnet_name           = "xpe-vnet-poc"
+  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
+  location            = module.resource_group_xpeterraformpoc.resource_group_location
+  address_space       = ["10.10.0.0/16"]
 
-  subnets = [
-    { name = "subnet1", prefix = "20.0.10.0/24" },
-    { name = "subnet2", prefix = "20.0.20.0/24" }
-  ]
+  subnet_name         = "xpe-subnet"
+  subnet_prefix       = "10.10.0.0/24"
 
   tags = {
     UDN      = "Xpertal"
@@ -84,4 +82,3 @@ module "vnet_xpterraformpoc" {
   }
 
 }
-
