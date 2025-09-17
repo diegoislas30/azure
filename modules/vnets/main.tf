@@ -7,30 +7,29 @@ resource "azurerm_virtual_network" "this" {
 }
 
 resource "azurerm_subnet" "this" {
-  for_each = { for s in var.subnets : s.name => s }
-
+  for_each             = { for s in var.subnets : s.name => s }
   name                 = each.value.name
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = [each.value.address_prefix]
 }
 
-# Asociar NSG si se especifica en la variable
+# Asociación con NSG (si se pasa nsg_id)
 resource "azurerm_subnet_network_security_group_association" "this" {
   for_each = {
     for s in var.subnets : s.name => s
-    if contains(keys(s), "nsg_id") && s.nsg_id != null && s.nsg_id != ""
+    if lookup(s, "nsg_id", null) != null
   }
 
   subnet_id                 = azurerm_subnet.this[each.key].id
   network_security_group_id = each.value.nsg_id
 }
 
-# Asociar Route Table si se especifica en la variable
+# Asociación con Route Table (si se pasa route_table_id)
 resource "azurerm_subnet_route_table_association" "this" {
   for_each = {
     for s in var.subnets : s.name => s
-    if contains(keys(s), "route_table_id") && s.route_table_id != null && s.route_table_id != ""
+    if lookup(s, "route_table_id", null) != null
   }
 
   subnet_id      = azurerm_subnet.this[each.key].id
