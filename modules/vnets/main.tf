@@ -1,14 +1,22 @@
-# === Virtual Network ===
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
+    }
+  }
+}
+
+# === VNET ===
 resource "azurerm_virtual_network" "this" {
   name                = var.vnet_name
   location            = var.location
   resource_group_name = var.resource_group_name
   address_space       = var.address_space
-
-  tags = tomap(var.tags)
+  tags                = var.tags
 }
 
-# === Subnets dinámicas ===
+# === Subnets ===
 resource "azurerm_subnet" "this" {
   for_each             = { for s in var.subnets : s.name => s }
   name                 = each.value.name
@@ -16,7 +24,6 @@ resource "azurerm_subnet" "this" {
   virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = [each.value.address_prefix]
 
-  # Delegaciones opcionales
   dynamic "delegation" {
     for_each = lookup(each.value, "delegations", [])
     content {
@@ -29,29 +36,27 @@ resource "azurerm_subnet" "this" {
   }
 }
 
-# === Asociación NSG por subnet (solo si nsg_id != null) ===
+# === Asociación NSG → Subnet (count) ===
 resource "azurerm_subnet_network_security_group_association" "this" {
-  for_each = {
-    for s in var.subnets : s.name => s
-    if try(s.nsg_id, null) != null
-  }
+  for_each = { for s in var.subnets : s.name => s }
+
+  count = try(each.value.nsg_id, null) == null ? 0 : 1
 
   subnet_id                 = azurerm_subnet.this[each.key].id
   network_security_group_id = each.value.nsg_id
 }
 
-# === Asociación Route Table por subnet (solo si route_table_id != null) ===
+# === Asociación Route Table → Subnet (count) ===
 resource "azurerm_subnet_route_table_association" "this" {
-  for_each = {
-    for s in var.subnets : s.name => s
-    if try(s.route_table_id, null) != null
-  }
+  for_each = { for s in var.subnets : s.name => s }
+
+  count = try(each.value.route_table_id, null) == null ? 0 : 1
 
   subnet_id      = azurerm_subnet.this[each.key].id
   route_table_id = each.value.route_table_id
 }
 
-# === Peerings (opcionales) ===
+# === Peerings opcionales ===
 resource "azurerm_virtual_network_peering" "this" {
   for_each = { for p in var.peerings : p.name => p }
 
