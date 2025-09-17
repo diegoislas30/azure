@@ -23,6 +23,3 @@ resource "azurerm_network_security_rule" "this" {
   resource_group_name         = var.resource_group_name
   network_security_group_name = azurerm_network_security_group.this.name
 }
-
-
-## veamos si funciona
