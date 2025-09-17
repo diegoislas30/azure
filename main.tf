@@ -63,7 +63,7 @@ providers = {
 module "vnet_xpterraformpoc" {
   source              = "./modules/vnets"
   resource_group_name = module.resource_group_xpterraformpoc.resource_group_name
-  location            = module.resource_group_xpterraformpoc.location
+  location            = module.resource_group_xpterraformpoc.resource_group_location
   vnet_name           = "xpterraformpoc-vnet"
   address_space       = ["20.0.0.0/16"]
 
