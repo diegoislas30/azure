@@ -109,11 +109,10 @@ module "network_security_group" {
 
 }
 
-
 module "vnet_con_nsg" {
   source = "./modules/vnets"
 
-  vnet_name            = "xpeterraformpoc-vnet"
+  vnet_name            = "xpterraformpoc-vnet"
   resource_group_name  = module.resource_group_xpeterraformpoc.resource_group_name
   location             = module.resource_group_xpeterraformpoc.resource_group_location
   address_space        = ["20.0.0.0/16"]
@@ -123,15 +122,11 @@ module "vnet_con_nsg" {
       name           = "subnet-01"
       address_prefix = "20.0.10.0/24"
       nsg_id         = module.network_security_group.nsg_id
-      route_table_id = null
-      delegations    = []
     },
     {
       name           = "subnet-02"
       address_prefix = "20.0.20.0/24"
-      nsg_id         = null
-      route_table_id = null
-      delegations    = []
+      # aquí no pongo nsg_id ni route_table_id ni delegations
     }
   ]
 
