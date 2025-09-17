@@ -1,11 +1,3 @@
-terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 3.0"
-    }
-  }
-}
 
 # === Virtual Network ===
 resource "azurerm_virtual_network" "this" {
