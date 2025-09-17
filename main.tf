@@ -273,6 +273,8 @@ module "vnet_xpertalraformpoc2" {
     azurerm = azurerm.xpe_shared_poc
   }
 
+  depends_on = [ module.network_security_group ]
+
 }
 
 
