@@ -284,7 +284,6 @@ module "vm1" {
   location            = module.resource_group_xpeterraformpoc2.resource_group_location
   resource_group_name = module.resource_group_xpeterraformpoc2.resource_group_name
   subnet_id           = module.vnet_xpeterraformpoc2.subnet_ids["default"]
-  public_ip_id        = azurerm_public_ip.vm1.id
   vm_size             = "Standard_B2s"
 
   admin_username = "guestfemsa"
@@ -295,17 +294,18 @@ module "vm1" {
   tags = {
     UDN      = "Xpertal"
     OWNER    = "Diego Enrique Islas Cuervo"
-    xpeowner = "dislas@caabsa.com.mx"
+    xpeowner = "diegoenrique.islas@xpertal.com"
     proyecto = "terraform"
     ambiente = "dev"
+    
   }
-
-  
 
   providers = {
     azurerm = azurerm.xpe_shared_poc
   }
 
-
 }
-  
+
+
+
+## A ver si jala
