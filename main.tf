@@ -3,6 +3,7 @@ module "resource_group_xpeterraformpoc" {
 
   resource_group_name = "xpeterraformpoc-rg"
   location            = "southcentralus"
+
   tags = {
     UDN      = "Xpertal"
     OWNER    = "Diego Enrique Islas Cuervo"
@@ -16,15 +17,13 @@ module "resource_group_xpeterraformpoc" {
   }
 }
 
-
 ## Recurso generado por Yam
-
-
 module "resource_group_xpeterraformpoc2" {
   source = "./modules/resource_group"
 
   resource_group_name = "xpeterraformpoc2-rg"
   location            = "southcentralus"
+
   tags = {
     UDN      = "Xpertal"
     OWNER    = "Guillermo Yam"
@@ -38,14 +37,13 @@ module "resource_group_xpeterraformpoc2" {
   }
 }
 
-## Recurso generado pedro 
-
-
+## Recurso generado por Pedro
 module "resource_group_xpeterraformpoc3" {
   source = "./modules/resource_group"
 
   resource_group_name = "xpeterraformpoc3-rg"
   location            = "southcentralus"
+
   tags = {
     UDN      = "Xpertal"
     OWNER    = "Pedro Guerrero"
@@ -59,8 +57,7 @@ module "resource_group_xpeterraformpoc3" {
   }
 }
 
-
-
+# === Network Security Group ===
 module "network_security_group" {
   source = "./modules/network_security_group"
 
@@ -106,51 +103,6 @@ module "network_security_group" {
   }
 
   depends_on = [module.resource_group_xpeterraformpoc]
-
-}
-
-module "network_security_group" {
-  source = "./modules/network_security_group"
-
-  nsg_name            = "xpeterraformpoc-nsg"
-  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
-  location            = module.resource_group_xpeterraformpoc.resource_group_location
-
-  security_rules = [
-    {
-      name                       = "Allow-HTTP"
-      priority                   = 100
-      direction                  = "Inbound"
-      access                     = "Allow"
-      protocol                   = "Tcp"
-      source_port_range          = "*"
-      destination_port_range     = "80"
-      source_address_prefix      = "*"
-      destination_address_prefix = "*"
-    },
-    {
-      name                       = "Allow-HTTPS"
-      priority                   = 110
-      direction                  = "Inbound"
-      access                     = "Allow"
-      protocol                   = "Tcp"
-      source_port_range          = "*"
-      destination_port_range     = "443"
-      source_address_prefix      = "*"
-      destination_address_prefix = "*"
-    }
-  ]
-
-  tags = {
-    UDN      = "Xpertal"
-    OWNER    = "Diego Enrique Islas Cuervo"
-    proyecto = "terraform"
-    ambiente = "dev"
-  }
-
-  providers = {
-    azurerm = azurerm.xpe_shared_poc
-  }
 }
 
 # === VNet con Subnets y NSG asociado ===
@@ -187,5 +139,5 @@ module "vnet_con_nsg" {
     azurerm = azurerm.xpe_shared_poc
   }
 
-  
+  depends_on = [module.network_security_group]
 }
