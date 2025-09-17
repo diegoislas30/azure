@@ -142,11 +142,12 @@ module "resource_group_xpeterraformpoc3" {
 #   }
 # }
 
-module "network_security_group" {
-  source              = "./modules/network_security_group"
-  nsg_name            = "xpeterraformpoc-nsg"
-  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
-  location            = module.resource_group_xpeterraformpoc.resource_group_location
+module "xpertal_network_security_group" {
+  source = "./modules/network_security_group"
+
+  nsg_name            = "xpertal-nsg"
+  resource_group_name = module.resource_group_xpeterraformpoc2.resource_group_name
+  location            = module.resource_group_xpeterraformpoc2.resource_group_location
 
   security_rules = [
     {
@@ -175,8 +176,8 @@ module "network_security_group" {
 
   tags = {
     UDN      = "Xpertal"
-    OWNER    = "Diego Enrique Islas Cuervo"
-    xpeowner = "diegoenrique.islas@xpertal.com"
+    OWNER    = "Guillermo Yam"
+    xpeowner = "guillermo.yam@xpertal.com"
     proyecto = "terraform"
     ambiente = "dev"
   }
@@ -185,20 +186,35 @@ module "network_security_group" {
     azurerm = azurerm.xpe_shared_poc
   }
 
-  
 }
 
+
 module "vnet_xpeterraformpoc" {
-  source              = "./modules/vnets"
+  source = "./modules/vnets" # Ruta a tu módulo corregido
+
   vnet_name           = "xpeterraformpoc-vnet"
-  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
-  location            = module.resource_group_xpeterraformpoc.resource_group_location
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
   address_space       = ["10.0.0.0/16"]
 
+  # Lista de subnets que se deben crear
   subnets = [
-    { name = "web", address_prefix = "10.0.1.0/24", nsg_id = module.network_security_group.nsg_id },
-    { name = "app", address_prefix = "10.0.2.0/24", nsg_id = null }
+    {
+      name           = "web"
+      address_prefix = "10.0.1.0/24"
+    },
+    {
+      name           = "app" # Esta subnet no tendrá NSG
+      address_prefix = "10.0.2.0/24"
+    }
   ]
+
+  # ✨ Aquí se define qué subnet se asocia con qué NSG ✨
+  # Se construye el mapa que se pasa a la variable 'subnet_nsg_associations'.
+  # Como solo 'web' está en este mapa, solo esa subnet se asociará.
+  subnet_nsg_associations = {
+    "web" = azurerm_network_security_group.web_nsg.id
+  }
 
   tags = {
     UDN      = "Xpertal"
@@ -206,12 +222,11 @@ module "vnet_xpeterraformpoc" {
     xpeowner = "diegoenrique.islas@xpertal.com"
     proyecto = "terraform"
     ambiente = "dev"
-
+    
 }
-
   providers = {
     azurerm = azurerm.xpe_shared_poc
   }
-}
 
+}
 
