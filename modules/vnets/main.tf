@@ -28,30 +28,26 @@ resource "azurerm_subnet" "this" {
   }
 }
 
-# === Asociación NSG → Subnet ===
+# === Asociación NSG → Subnet (solo si nsg_id no es null) ===
 resource "azurerm_subnet_network_security_group_association" "this" {
-  for_each = { for s in var.subnets : s.name => s }
+  for_each = {
+    for s in var.subnets : s.name => s
+    if try(s.nsg_id, null) != null
+  }
 
   subnet_id                 = azurerm_subnet.this[each.key].id
-  network_security_group_id = try(each.value.nsg_id, null)
-
-  # Evita que Terraform reviente cuando nsg_id = null
-  lifecycle {
-    ignore_changes = [network_security_group_id]
-  }
+  network_security_group_id = each.value.nsg_id
 }
 
-# === Asociación Route Table → Subnet ===
+# === Asociación Route Table → Subnet (solo si route_table_id no es null) ===
 resource "azurerm_subnet_route_table_association" "this" {
-  for_each = { for s in var.subnets : s.name => s }
+  for_each = {
+    for s in var.subnets : s.name => s
+    if try(s.route_table_id, null) != null
+  }
 
   subnet_id      = azurerm_subnet.this[each.key].id
-  route_table_id = try(each.value.route_table_id, null)
-
-  # Evita que Terraform reviente cuando route_table_id = null
-  lifecycle {
-    ignore_changes = [route_table_id]
-  }
+  route_table_id = each.value.route_table_id
 }
 
 # === Peerings opcionales ===
