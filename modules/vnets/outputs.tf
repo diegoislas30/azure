@@ -4,11 +4,11 @@ output "vnet_id" {
 }
 
 output "subnet_ids" {
-  description = "Mapa de IDs de las subnets."
-  value       = { for k, v in azurerm_subnet.this : k => v.id }
+  description = "Mapa de IDs de subnets."
+  value       = { for k, s in azurerm_subnet.this : k => s.id }
 }
 
 output "subnet_names" {
-  description = "Mapa de nombres de las subnets."
-  value       = { for k, v in azurerm_subnet.this : k => v.name }
+  description = "Mapa de nombres de subnets."
+  value       = { for k, s in azurerm_subnet.this : k => s.name }
 }

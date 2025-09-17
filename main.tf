@@ -237,9 +237,11 @@ module "network_security_group2" {
 
 }
 
+
 # === Virtual Network ===
 
-module "vnet_xpeterraformpoc2" {
+
+module "vnet_xpertalraformpoc2" {
   source = "./modules/vnets"
 
   vnet_name           = "xpeterraformpoc2-vnet"
@@ -248,16 +250,14 @@ module "vnet_xpeterraformpoc2" {
   address_space       = ["20.0.0.0/16"]
   subnets = [
     {
-      name           = "default"
-      address_prefix = "20.0.10.0/24"
-    },
-    {
       name           = "web"
-      address_prefix = "20.0.20.0/24"
+      address_prefix = "20.0.10.0/24"
+      nsg_id         = module.network_security_group.nsg_id
     },
     {
       name           = "app"
-      address_prefix = "20.0.30.0/24"
+      address_prefix = "20.0.20.0/24"
+      nsg_id         = module.network_security_group.nsg_id
     }
   ]
 
@@ -276,36 +276,4 @@ module "vnet_xpeterraformpoc2" {
 }
 
 
-#== VM ==
 
-module "vm1" {
-  source              = "./modules/virtual-machine"
-  vm_name             = "vm-demo01"
-  location            = module.resource_group_xpeterraformpoc2.resource_group_location
-  resource_group_name = module.resource_group_xpeterraformpoc2.resource_group_name
-  subnet_id           = module.vnet_xpeterraformpoc2.subnet_ids["default"]
-  vm_size             = "Standard_B2s"
-
-  admin_username = "guestfemsa"
-  admin_password = "ZaVeCer1029Adm"
-
-  os_disk_size = 120
-
-  tags = {
-    UDN      = "Xpertal"
-    OWNER    = "Diego Enrique Islas Cuervo"
-    xpeowner = "diegoenrique.islas@xpertal.com"
-    proyecto = "terraform"
-    ambiente = "dev"
-    
-  }
-
-  providers = {
-    azurerm = azurerm.xpe_shared_poc
-  }
-
-}
-
-
-
-## A ver si jala
