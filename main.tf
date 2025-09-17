@@ -60,20 +60,24 @@ providers = {
 }
 
 
-module "vnet_simple" {
-  source              = "./modules/vnet"
-  vnet_name           = "vnet-simple"
-  resource_group_name = "rg-network-prd"
-  location            = "eastus"
-  address_space       = ["10.10.0.0/16"]
+module "vnet_xpterraformpoc" {
+  source              = "./modules/vnets"
+  resource_group_name = module.resource_group_xpterraformpoc.resource_group_name
+  location            = module.resource_group_xpterraformpoc.location
+  vnet_name           = "xpterraformpoc-vnet"
+  address_space       = ["20.0.0.0/16"]
 
-  subnet_name   = "subnet-apps"
-  subnet_prefix = "10.10.1.0/24"
+  subnets = [
+    {
+      name           = "xpterraformpoc-subnet"
+      address_prefix = "20.0.10.0/24"
+    }
+  ]
 
   tags = {
     UDN      = "Xpertal"
     OWNER    = "Diego Enrique Islas Cuervo"
-    xpeowner = "diegoenrique.islas@xpertal.com"
+    xpeowner = "dislas@caabsa.com.mx"
     proyecto = "terraform"
     ambiente = "dev"
   }
@@ -81,6 +85,4 @@ module "vnet_simple" {
   providers = {
     azurerm = azurerm.xpe_shared_poc
   }
-
-  
 }
