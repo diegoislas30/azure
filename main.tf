@@ -180,6 +180,12 @@ module "network_security_group" {
     proyecto = "terraform"
     ambiente = "dev"
   }
+
+  providers = {
+    azurerm = azurerm.xpe_shared_poc
+  }
+
+  
 }
 
 module "vnet_xpeterraformpoc" {
