@@ -1,3 +1,4 @@
+# === Virtual Network ===
 resource "azurerm_virtual_network" "this" {
   name                = var.vnet_name
   location            = var.location
@@ -18,7 +19,7 @@ resource "azurerm_subnet" "this" {
 # === Asociación NSG por subnet (opcional) ===
 resource "azurerm_subnet_network_security_group_association" "this" {
   for_each = {
-    for s in var.subnets : s.name => s if try(s.nsg_id, null) != null
+    for s in var.subnets : s.name => s if s.nsg_id != null && s.nsg_id != ""
   }
 
   subnet_id                 = azurerm_subnet.this[each.key].id
@@ -28,7 +29,7 @@ resource "azurerm_subnet_network_security_group_association" "this" {
 # === Asociación Route Table por subnet (opcional) ===
 resource "azurerm_subnet_route_table_association" "this" {
   for_each = {
-    for s in var.subnets : s.name => s if try(s.route_table_id, null) != null
+    for s in var.subnets : s.name => s if s.route_table_id != null && s.route_table_id != ""
   }
 
   subnet_id      = azurerm_subnet.this[each.key].id
