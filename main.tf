@@ -193,8 +193,8 @@ module "vnet_xpeterraformpoc" {
   source = "./modules/vnets" # Ruta a tu módulo corregido
 
   vnet_name           = "xpeterraformpoc-vnet"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.resource_group_name
+  location            = azurerm_resource_group.rg.resource_group_location
   address_space       = ["10.0.0.0/16"]
 
   # Lista de subnets que se deben crear
