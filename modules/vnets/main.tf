@@ -1,4 +1,3 @@
-
 # === Virtual Network ===
 resource "azurerm_virtual_network" "this" {
   name                = var.vnet_name
@@ -8,7 +7,7 @@ resource "azurerm_virtual_network" "this" {
   tags                = var.tags
 }
 
-# === Subnets ===
+# === Subnets dinámicas ===
 resource "azurerm_subnet" "this" {
   for_each             = { for s in var.subnets : s.name => s }
   name                 = each.value.name
@@ -16,6 +15,7 @@ resource "azurerm_subnet" "this" {
   virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = [each.value.address_prefix]
 
+  # Delegaciones opcionales
   dynamic "delegation" {
     for_each = lookup(each.value, "delegations", [])
     content {
@@ -28,45 +28,29 @@ resource "azurerm_subnet" "this" {
   }
 }
 
-# === Asociación NSG → Subnet ===
+# === Asociación NSG → Subnet (solo si existe nsg_id) ===
 resource "azurerm_subnet_network_security_group_association" "this" {
-  for_each = { for s in var.subnets : s.name => s }
-
-  subnet_id = azurerm_subnet.this[each.key].id
-  network_security_group_id = can(each.value.nsg_id) && each.value.nsg_id != null ? each.value.nsg_id : azurerm_network_security_group_dummy.id
-
-  lifecycle {
-    ignore_changes = [network_security_group_id]
+  for_each = {
+    for s in var.subnets : s.name => s
+    if try(s.nsg_id, null) != null
   }
+
+  subnet_id                 = azurerm_subnet.this[each.key].id
+  network_security_group_id = each.value.nsg_id
 }
 
-# === Dummy NSG para manejar nulls ===
-resource "azurerm_network_security_group" "dummy" {
-  name                = "${var.vnet_name}-dummy-nsg"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-}
-
-# === Asociación Route Table → Subnet ===
+# === Asociación Route Table → Subnet (solo si existe route_table_id) ===
 resource "azurerm_subnet_route_table_association" "this" {
-  for_each = { for s in var.subnets : s.name => s }
+  for_each = {
+    for s in var.subnets : s.name => s
+    if try(s.route_table_id, null) != null
+  }
 
   subnet_id      = azurerm_subnet.this[each.key].id
-  route_table_id = can(each.value.route_table_id) && each.value.route_table_id != null ? each.value.route_table_id : azurerm_route_table_dummy.id
-
-  lifecycle {
-    ignore_changes = [route_table_id]
-  }
+  route_table_id = each.value.route_table_id
 }
 
-# === Dummy Route Table para manejar nulls ===
-resource "azurerm_route_table" "dummy" {
-  name                = "${var.vnet_name}-dummy-rt"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-}
-
-# === Peerings (opcionales) ===
+# === Peerings opcionales ===
 resource "azurerm_virtual_network_peering" "this" {
   for_each = { for p in var.peerings : p.name => p }
 
