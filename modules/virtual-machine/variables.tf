@@ -3,81 +3,78 @@ variable "vm_name" {
   type        = string
 }
 
-variable "resource_group_name" {
-  description = "Resource Group destino"
+variable "location" {
+  description = "Región"
   type        = string
 }
 
-variable "location" {
-  description = "Región de Azure"
+variable "resource_group_name" {
+  description = "Resource Group"
   type        = string
 }
 
 variable "subnet_id" {
-  description = "ID de la subnet donde se conectará la NIC"
+  description = "ID de la subnet donde se desplegará la VM"
   type        = string
+}
+
+variable "public_ip_id" {
+  description = "ID de la IP pública (opcional)"
+  type        = string
+  default     = null
 }
 
 variable "vm_size" {
-  description = "Tamaño de la instancia"
+  description = "Tamaño de la VM"
   type        = string
-  default     = "Standard_D2s_v3"
+  default     = "Standard_B2s"
 }
 
 variable "admin_username" {
-  description = "Usuario admin local"
+  description = "Usuario administrador"
   type        = string
-  default     = "azureadmin"
 }
 
 variable "admin_password" {
-  description = "Password admin (usa KeyVault/secret en CI en prod)"
+  description = "Contraseña administrador"
   type        = string
   sensitive   = true
-  default     = "ChangeMe!12345"
 }
 
-variable "os_disk_size_gb" {
-  description = "Tamaño del OS disk (GB)"
+variable "os_disk_size" {
+  description = "Tamaño del disco OS en GB"
   type        = number
-  default     = 127
+  default     = 64
 }
 
-variable "data_disks" {
-  description = "Discos de datos a adjuntar"
-  type = list(object({
-    lun           = number
-    size_gb       = number
-    caching       = string            # None | ReadOnly | ReadWrite
-    storage_type  = string            # StandardSSD_LRS | Premium_LRS | ...
-  }))
-  default = []
+variable "image_publisher" {
+  type    = string
+  default = "Canonical"
 }
 
-
-# Reglas mínimas dentro del módulo (solo si se crea NSG interno)
-variable "allow_rdp_from_cidr" {
-  description = "CIDR permitido para RDP. Si es null, no se crea regla (todo inbound denegado)."
-  type        = string
-  default     = null
+variable "image_offer" {
+  type    = string
+  default = "0001-com-ubuntu-server-jammy"
 }
 
-# NSG externo (si lo pasas, lo asociamos a la NIC)
-variable "nsg_id" {
-  description = "ID de un NSG externo a asociar a la NIC"
-  type        = string
-  default     = null
+variable "image_sku" {
+  type    = string
+  default = "22_04-lts-gen2"
 }
 
-# Si true, crea un NSG interno en este módulo y lo asocia a la NIC
-variable "create_builtin_nsg" {
-  description = "Crear NSG propio del módulo (se ignora si pasas nsg_id)"
-  type        = bool
-  default     = false
+variable "image_version" {
+  type    = string
+  default = "latest"
 }
 
 variable "tags" {
-  description = "Etiquetas"
-  type        = map(string)
-  default     = {}
+  description = "A mapping of tags to assign to the resources"
+  type        = object({
+    UDN       = string
+    OWNER     = string
+    xpeowner  = string
+    proyecto  = string
+    ambiente  = string
+  })
+  
 }

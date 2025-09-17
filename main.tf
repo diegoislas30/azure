@@ -278,39 +278,34 @@ module "vnet_xpeterraformpoc2" {
 
 #== VM ==
 
-module "virtual_machine" {
-  
-  source               = "./modules/virtual-machine"
-  vm_name              = "xpeterraformpoc-vm"
-  location             = module.resource_group_xpeterraformpoc2.resource_group_location
-  resource_group_name  = module.resource_group_xpeterraformpoc2.resource_group_name
-  vm_size              = "Standard_B1s"
-  admin_username       = "guestfemsa"
-  admin_password       = "ZaVeCer1029Adm"
-  os_disk_size         = 30
-  image_publisher     = "Canonical"
-  image_offer         = "UbuntuServer"
-  image_sku           = "18.04-LTS"
-  image_version       = "latest"
-  subnet_id           = module.vnet_xpeterraformpoc.subnet_ids["default"]
-  public_ip_id        = null
+module "vm1" {
+  source              = "./modules/virtual-machine"
+  vm_name             = "vm-demo01"
+  location            = module.resource_group_xpeterraformpoc2.resource_group_location
+  resource_group_name = module.resource_group_xpeterraformpoc2.resource_group_name
+  subnet_id           = module.vnet_xpeterraformpoc2.subnet_ids["default"]
+  public_ip_id        = azurerm_public_ip.vm1.id
+  vm_size             = "Standard_B2s"
+
+  admin_username = "guestfemsa"
+  admin_password = "ZaVeCer1029Adm"
+
+  os_disk_size = 120
+
   tags = {
     UDN      = "Xpertal"
     OWNER    = "Diego Enrique Islas Cuervo"
-    xpeowner = "diegoenrique.islas@xpertal.com"
+    xpeowner = "dislas@caabsa.com.mx"
     proyecto = "terraform"
     ambiente = "dev"
-  
-}
+  }
 
+  
 
   providers = {
     azurerm = azurerm.xpe_shared_poc
   }
+
+
 }
-
   
-
-
-
-
