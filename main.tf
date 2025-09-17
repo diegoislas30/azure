@@ -61,7 +61,7 @@ module "resource_group_xpeterraformpoc3" {
 
 
 module "vnet_xpterraformpoc" {
-  source              = "./modules/vnets".
+  source              = "./modules/vnets"
   resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
   location            = module.resource_group_xpeterraformpoc.resource_group_location
   vnet_name           = "xpterraformpoc-vnet"
