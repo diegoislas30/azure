@@ -90,6 +90,32 @@ module "resource_group_xpeterraformpoc3" {
 #   }
 # }
 
+
+
+/*
+  Módulo: network_security_group
+
+  Este módulo crea un Grupo de Seguridad de Red (NSG) de Azure con reglas de seguridad personalizadas.
+
+  Parámetros:
+    - nsg_name: Nombre del Grupo de Seguridad de Red.
+    - location: Región de Azure donde se implementará el NSG. Derivado del módulo de grupo de recursos.
+    - resource_group_name: Nombre del grupo de recursos asociado al NSG. Derivado del módulo de grupo de recursos.
+    - security_rules: Lista de reglas de seguridad que se aplicarán al NSG. Cada regla incluye:
+        - name: Nombre de la regla (ejemplo: "Allow-HTTP", "Allow-HTTPS", "Deny-All-Inbound").
+        - priority: Prioridad de la regla (número menor = mayor prioridad).
+        - direction: "Inbound" o "Outbound".
+        - access: "Allow" o "Deny".
+        - protocol: Tipo de protocolo (ejemplo: "Tcp", "*").
+        - source_port_range: Rango de puertos de origen (ejemplo: "*").
+        - destination_port_range: Rango de puertos de destino (ejemplo: "80", "443", "*").
+        - source_address_prefix: Prefijo de dirección de origen (ejemplo: "*").
+        - destination_address_prefix: Prefijo de dirección de destino (ejemplo: "*").
+    - tags: Pares clave-valor para etiquetado de recursos (ejemplo: propietario, proyecto, ambiente).
+    - providers: Especifica la instancia del proveedor azurerm a utilizar.
+
+*/
+
 module "network_security_group" {
   source = "./modules/network_security_group"
 
@@ -143,5 +169,36 @@ module "network_security_group" {
   providers = {
     azurerm = azurerm.xpe_shared_poc
   }
-
 }
+
+
+module "vnet_xpterraformpoc" {
+  source              = "./modules/vnets"
+  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
+  location            = module.resource_group_xpeterraformpoc.resource_group_location
+  vnet_name           = "xpterraformpoc-vnet"
+  address_space       = ["20.0.0.0/16"]
+  nsg_id              = module.network_security_group.nsg_id
+
+  subnets = [
+    { name = "subnet-apps", address_prefix = "20.0.10.0/24" },
+    { name = "subnet-db",   address_prefix = "20.0.20.0/24" },
+    { name = "subnet-web",  address_prefix = "20.0.30.0/24" }
+  ]
+
+  tags = {
+    UDN      = "Xpertal"
+    OWNER    = "Diego Enrique Islas Cuervo"
+    xpeowner = "diegoenrique.islas@xpertal.com"
+    proyecto = "terraform"
+    ambiente = "dev"
+  }
+
+  providers = {
+    azurerm = azurerm.xpe_shared_poc
+  }
+}
+
+## veamos si con esto funciona
+
+ 
