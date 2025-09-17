@@ -3,7 +3,7 @@ resource "azurerm_virtual_network" "this" {
   location            = var.location
   resource_group_name = var.resource_group_name
   address_space       = var.address_space
-  tags                = var.tags
+  tags                = tomap(var.tags)
 }
 
 # === Subnets dinámicas ===
@@ -13,59 +13,4 @@ resource "azurerm_subnet" "this" {
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = [each.value.address_prefix]
-
-  dynamic "delegation" {
-    for_each = lookup(each.value, "delegations", [])
-    content {
-      name = delegation.value.name
-      service_delegation {
-        name    = delegation.value.service_name
-        actions = delegation.value.actions
-      }
-    }
-  }
-}
-
-# === Locals para filtrar subnets con NSG o Route Table ===
-locals {
-  subnets_with_nsg = {
-    for s in var.subnets : s.name => s
-    if try(s.nsg_id, null) != null
-  }
-
-  subnets_with_rt = {
-    for s in var.subnets : s.name => s
-    if try(s.route_table_id, null) != null
-  }
-}
-
-# === Asociación NSG solo si hay nsg_id ===
-resource "azurerm_subnet_network_security_group_association" "this" {
-  for_each = local.subnets_with_nsg
-
-  subnet_id                 = azurerm_subnet.this[each.key].id
-  network_security_group_id = each.value.nsg_id
-}
-
-# === Asociación Route Table solo si hay route_table_id ===
-resource "azurerm_subnet_route_table_association" "this" {
-  for_each = local.subnets_with_rt
-
-  subnet_id      = azurerm_subnet.this[each.key].id
-  route_table_id = each.value.route_table_id
-}
-
-# === Peerings (opcional) ===
-resource "azurerm_virtual_network_peering" "this" {
-  for_each = { for p in var.peerings : p.name => p }
-
-  name                      = each.value.name
-  resource_group_name       = var.resource_group_name
-  virtual_network_name      = azurerm_virtual_network.this.name
-  remote_virtual_network_id = each.value.remote_vnet_id
-
-  allow_virtual_network_access = lookup(each.value, "allow_vnet_access", true)
-  allow_forwarded_traffic      = lookup(each.value, "allow_forwarded_traffic", false)
-  allow_gateway_transit        = lookup(each.value, "allow_gateway_transit", false)
-  use_remote_gateways          = lookup(each.value, "use_remote_gateways", false)
 }

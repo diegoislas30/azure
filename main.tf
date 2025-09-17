@@ -102,28 +102,32 @@ module "network_security_group" {
     azurerm = azurerm.xpe_shared_poc
   }
 
-  depends_on = [module.resource_group_xpeterraformpoc]
+ 
 }
 
-module "vnet_con_nsg" {
-  source              = "./modules/vnets"
-  vnet_name           = "xpterraformpoc-vnet"
-  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
-  location            = module.resource_group_xpeterraformpoc.resource_group_location
-  address_space       = ["20.0.0.0/16"]
+# === Virtual Network ===
 
+module "vnet_xpeterraformpoc" {
+  source = "./modules/vnets"
+
+  vnet_name           = "xpeterraformpoc-vnet"
+  location            = module.resource_group_xpeterraformpoc.resource_group_location
+  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
+  address_space       = ["20.0.0.0/16"]
   subnets = [
-    # Subnet con NSG
     {
-      name           = "subnet-01"
+      name           = "default"
       address_prefix = "20.0.10.0/24"
-      nsg_id         = module.network_security_group.nsg_id
     },
-    # Subnet sin NSG
     {
-      name           = "subnet-02"
+      name           = "web"
       address_prefix = "20.0.20.0/24"
+    },
+    {
+      name           = "app"
+      address_prefix = "20.0.30.0/24"
     }
+
   ]
 
   tags = {
@@ -137,6 +141,7 @@ module "vnet_con_nsg" {
   providers = {
     azurerm = azurerm.xpe_shared_poc
   }
-
-  depends_on = [module.network_security_group]
 }
+
+
+
