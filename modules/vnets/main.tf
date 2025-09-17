@@ -3,16 +3,16 @@ resource "azurerm_virtual_network" "this" {
   location            = var.location
   resource_group_name = var.resource_group_name
   address_space       = var.address_space
-  tags                = tomap(var.tags)
+  tags                = var.tags
 }
 
 resource "azurerm_subnet" "this" {
-  name                 = var.subnet_name
+  for_each             = { for s in var.subnets : s.name => s }
+  name                 = each.value.name
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.this.name
-  address_prefixes     = [var.subnet_prefix]
+  address_prefixes     = [each.value.address_prefix]
 
-  # Delegación opcional
   dynamic "delegation" {
     for_each = var.delegations
     content {
@@ -26,17 +26,17 @@ resource "azurerm_subnet" "this" {
   }
 }
 
-# NSG opcional
+# NSG opcional (solo aplica a la primera subnet de ejemplo)
 resource "azurerm_subnet_network_security_group_association" "this" {
-  count                     = var.nsg_id != null ? 1 : 0
-  subnet_id                 = azurerm_subnet.this.id
+  count                     = var.nsg_id != null && length(var.subnets) > 0 ? 1 : 0
+  subnet_id                 = values(azurerm_subnet.this)[0].id
   network_security_group_id = var.nsg_id
 }
 
-# Tabla de ruteo opcional
+# Tabla de ruteo opcional (solo aplica a la primera subnet de ejemplo)
 resource "azurerm_subnet_route_table_association" "this" {
-  count          = var.route_table_id != null ? 1 : 0
-  subnet_id      = azurerm_subnet.this.id
+  count          = var.route_table_id != null && length(var.subnets) > 0 ? 1 : 0
+  subnet_id      = values(azurerm_subnet.this)[0].id
   route_table_id = var.route_table_id
 }
 
