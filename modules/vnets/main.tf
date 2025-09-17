@@ -1,4 +1,3 @@
-# === Virtual Network ===
 resource "azurerm_virtual_network" "this" {
   name                = var.vnet_name
   location            = var.location
@@ -15,7 +14,6 @@ resource "azurerm_subnet" "this" {
   virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = [each.value.address_prefix]
 
-  # Delegaciones opcionales
   dynamic "delegation" {
     for_each = lookup(each.value, "delegations", [])
     content {
@@ -28,29 +26,36 @@ resource "azurerm_subnet" "this" {
   }
 }
 
-# === Asociación NSG → Subnet (solo si nsg_id no es null) ===
-resource "azurerm_subnet_network_security_group_association" "this" {
-  for_each = {
+# === Locals para filtrar subnets con NSG o Route Table ===
+locals {
+  subnets_with_nsg = {
     for s in var.subnets : s.name => s
     if try(s.nsg_id, null) != null
   }
+
+  subnets_with_rt = {
+    for s in var.subnets : s.name => s
+    if try(s.route_table_id, null) != null
+  }
+}
+
+# === Asociación NSG solo si hay nsg_id ===
+resource "azurerm_subnet_network_security_group_association" "this" {
+  for_each = local.subnets_with_nsg
 
   subnet_id                 = azurerm_subnet.this[each.key].id
   network_security_group_id = each.value.nsg_id
 }
 
-# === Asociación Route Table → Subnet (solo si route_table_id no es null) ===
+# === Asociación Route Table solo si hay route_table_id ===
 resource "azurerm_subnet_route_table_association" "this" {
-  for_each = {
-    for s in var.subnets : s.name => s
-    if try(s.route_table_id, null) != null
-  }
+  for_each = local.subnets_with_rt
 
   subnet_id      = azurerm_subnet.this[each.key].id
   route_table_id = each.value.route_table_id
 }
 
-# === Peerings opcionales ===
+# === Peerings (opcional) ===
 resource "azurerm_virtual_network_peering" "this" {
   for_each = { for p in var.peerings : p.name => p }
 

@@ -105,7 +105,6 @@ module "network_security_group" {
   depends_on = [module.resource_group_xpeterraformpoc]
 }
 
-# === VNet con Subnets y NSG asociado ===
 module "vnet_con_nsg" {
   source              = "./modules/vnets"
   vnet_name           = "xpterraformpoc-vnet"
@@ -114,13 +113,13 @@ module "vnet_con_nsg" {
   address_space       = ["20.0.0.0/16"]
 
   subnets = [
-    # Subnet con NSG asociado
+    # Subnet con NSG
     {
       name           = "subnet-01"
       address_prefix = "20.0.10.0/24"
       nsg_id         = module.network_security_group.nsg_id
     },
-    # Subnet sin NSG (no crea asociación)
+    # Subnet sin NSG
     {
       name           = "subnet-02"
       address_prefix = "20.0.20.0/24"
