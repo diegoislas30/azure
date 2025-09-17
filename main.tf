@@ -60,17 +60,76 @@ module "resource_group_xpeterraformpoc3" {
 }
 
 
-module "vnet_xpterraformpoc" {
-  source              = "./modules/vnets"
-  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
-  location            = module.resource_group_xpeterraformpoc.resource_group_location
-  vnet_name           = "xpterraformpoc-vnet"
-  address_space       = ["20.0.0.0/16"]
+# Módulo si para crear la red virtual "simple" principal del proyecto xpterraformpoc.
+# Utiliza el grupo de recursos creado por el módulo resource_group_xpeterraformpoc.
+# Define el espacio de direcciones y tres subredes: apps, db y web.
+# Aplica etiquetas para identificar el propietario, proyecto y ambiente.
+# module "vnet_xpterraformpoc" {
+#   source              = "./modules/vnets"
+#   resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
+#   location            = module.resource_group_xpeterraformpoc.resource_group_location
+#   vnet_name           = "xpterraformpoc-vnet"
+#   address_space       = ["20.0.0.0/16"]
+#
+#   subnets = [
+#     { name = "subnet-apps", address_prefix = "20.0.10.0/24" },
+#     { name = "subnet-db",   address_prefix = "20.0.20.0/24" },
+#     { name = "subnet-web",  address_prefix = "20.0.30.0/24" }
+#   ]
+#
+#   tags = {
+#     UDN      = "Xpertal"
+#     OWNER    = "Diego Enrique Islas Cuervo"
+#     xpeowner = "dislas@caabsa.com.mx"
+#     proyecto = "terraform"
+#     ambiente = "dev"
+#   }
+#
+#   providers = {
+#     azurerm = azurerm.xpe_shared_poc
+#   }
+# }
 
-  subnets = [
-    { name = "subnet-apps", address_prefix = "20.0.10.0/24" },
-    { name = "subnet-db",   address_prefix = "20.0.20.0/24" },
-    { name = "subnet-web",  address_prefix = "20.0.30.0/24" }
+module "network_security_group" {
+  source = "./modules/network_security_group"
+
+  nsg_name             = "xpterraformpoc-nsg"
+  location             = module.resource_group_xpeterraformpoc.resource_group_location
+  resource_group_name  = module.resource_group_xpeterraformpoc.resource_group_name
+  security_rules       = [
+    {
+      name                        = "Allow-HTTP"
+      priority                    = 100
+      direction                   = "Inbound"
+      access                      = "Allow"
+      protocol                    = "Tcp"
+      source_port_range           = "*"
+      destination_port_range      = "80"
+      source_address_prefix       = "*"
+      destination_address_prefix  = "*"
+    },
+    {
+      name                        = "Allow-HTTPS"
+      priority                    = 110
+      direction                   = "Inbound"
+      access                      = "Allow"
+      protocol                    = "Tcp"
+      source_port_range           = "*"
+      destination_port_range      = "443"
+      source_address_prefix       = "*"
+      destination_address_prefix  = "*"
+    },
+    {
+      name                        = "Deny-All-Inbound"
+      priority                    = 4096
+      direction                   = "Inbound"
+      access                      = "Deny"
+      protocol                    = "*"
+      source_port_range           = "*"
+      destination_port_range      = "*"
+      source_address_prefix       = "*"
+      destination_address_prefix  = "*"
+    }
   ]
 
   tags = {
@@ -84,4 +143,5 @@ module "vnet_xpterraformpoc" {
   providers = {
     azurerm = azurerm.xpe_shared_poc
   }
+
 }
