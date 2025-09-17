@@ -18,16 +18,13 @@ variable "address_space" {
   type        = list(string)
 }
 
-variable "subnet_name" {
-  description = "The name of the subnet."
-  type        = string
-  default     = "default"
-}
-
-variable "subnet_prefix" {
-  description = "The address prefix to use for the subnet."
-  type        = string
-  default     = "default"
+variable "subnets" {
+  description = "Lista de subnets a crear dentro de la VNET"
+  type = list(object({
+    name           = string
+    address_prefix = string
+  }))
+  default = []
 }
 
 variable "nsg_id" {
@@ -45,26 +42,25 @@ variable "route_table_id" {
 variable "peerings" {
   description = "A list of virtual network peerings to create."
   type = list(object({
-    name                      = string
-    remote_virtual_network_id = string
-    allow_virtual_network_access = bool
-    allow_forwarded_traffic      = bool
-    allow_gateway_transit        = bool
-    use_remote_gateways         = bool
-    }))
-    default = []
+    name                          = string
+    remote_virtual_network_id     = string
+    allow_virtual_network_access  = bool
+    allow_forwarded_traffic       = bool
+    allow_gateway_transit         = bool
+    use_remote_gateways           = bool
+  }))
+  default = []
 }
 
 variable "tags" {
   description = "A mapping of tags to assign to the resource group"
-  type        = object({
+  type = object({
     UDN       = string
     OWNER     = string
     xpeowner  = string
     proyecto  = string
     ambiente  = string
   })
-  
 }
 
 variable "delegations" {

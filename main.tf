@@ -8,10 +8,10 @@ module "resource_group_xpeterraformpoc" {
     OWNER    = "Diego Enrique Islas Cuervo"
     xpeowner = "diegoenrique.islas@xpertal.com"
     proyecto = "terraform"
-    ambiente = "dev"   
-}
+    ambiente = "dev"
+  }
 
-providers = {
+  providers = {
     azurerm = azurerm.xpe_shared_poc
   }
 }
@@ -30,10 +30,10 @@ module "resource_group_xpeterraformpoc2" {
     OWNER    = "Guillermo Yam"
     xpeowner = "guillermo.yam@xpertal.com"
     proyecto = "terraform"
-    ambiente = "dev"   
-}
+    ambiente = "dev"
+  }
 
-providers = {
+  providers = {
     azurerm = azurerm.xpe_shared_poc
   }
 }
@@ -51,24 +51,33 @@ module "resource_group_xpeterraformpoc3" {
     OWNER    = "Pedro Guerrero"
     xpeowner = "pedrojulio.guerrero@xpertal.com"
     proyecto = "terraform"
-    ambiente = "QA"   
-}
+    ambiente = "QA"
+  }
 
-providers = {
+  providers = {
     azurerm = azurerm.xpe_shared_poc
   }
 }
 
-module "vnet_xpterraformpoc" {
-  source              = "./modules/vnets"
-  vnet_name           = "xpe-vnet-poc"
+
+module "vnet_simple" {
+  source = "./modules/vnets"
+
+  vnet_name           = "simple-vnet"
   resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
-  location            = module.resource_group_xpeterraformpoc.resource_group_location
-  address_space       = ["10.10.0.0/16"]
+  location            = module.resource_group_xpeterraformpoc.resource_grouop_location
+  address_space       = ["20.0.0.0/16"]
+  subnets = [
+    {
+      name           = "subnet-01"
+      address_prefix = "20.0.10.0/24"
+    },
+    {
+      name           = "subnet-02"
+      address_prefix = "20.0.20.0/24"
+    }
 
-  subnet_name         = "xpe-subnet"
-  subnet_prefix       = "10.10.0.0/24"
-
+  ]
   tags = {
     UDN      = "Xpertal"
     OWNER    = "Diego Enrique Islas Cuervo"
@@ -76,9 +85,9 @@ module "vnet_xpterraformpoc" {
     proyecto = "terraform"
     ambiente = "dev"
   }
-
   providers = {
     azurerm = azurerm.xpe_shared_poc
   }
 
 }
+
