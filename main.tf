@@ -143,5 +143,19 @@ module "vnet_xpeterraformpoc" {
   }
 }
 
+# Asociar el network security group a la subnet 'web
+
+resource "azurerm_subnet_network_security_group_association" "subnet_01_assoc" {
+  subnet_id                 = module.vnet_xpeterraformpoc.subnet_ids["web"]
+  network_security_group_id = module.network_security_group.nsg_id
+
+  depends_on = [
+    module.vnet_con_subnets,
+    module.network_security_group
+  ]
+
+  
+}
+
 
 
