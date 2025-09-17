@@ -60,7 +60,7 @@ providers = {
 }
 
 module "vnet_xpterraformpoc" {
-  source              = "./modules/vnet"
+  source              = "./modules/vnets"
   vnet_name           = "xpe-vnet-poc"
   resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
   location            = module.resource_group_xpeterraformpoc.resource_group_location
