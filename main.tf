@@ -66,7 +66,7 @@ module "network_security_group" {
 
   nsg_name            = "xpeterraformpoc-nsg"
   resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
-  location            = module.resource_group_xpeterraformpoc.location
+  location            = module.resource_group_xpeterraformpoc.resource_group_location
 
   security_rules = [
     {
@@ -115,7 +115,7 @@ module "vnet_con_nsg" {
 
   vnet_name            = "xpeterraformpoc-vnet"
   resource_group_name  = module.resource_group_xpeterraformpoc.resource_group_name
-  location             = module.resource_group_xpeterraformpoc.location
+  location             = module.resource_group_xpeterraformpoc.resource_group_location
   address_space        = ["20.0.0.0/16"]
 
   subnets = [
