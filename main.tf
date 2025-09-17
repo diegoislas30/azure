@@ -65,7 +65,7 @@ module "vnet_simple" {
 
   vnet_name           = "simple-vnet"
   resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
-  location            = module.resource_group_xpeterraformpoc.resource_grouop_location
+  location            = module.resource_group_xpeterraformpoc.resource_group_location
   address_space       = ["20.0.0.0/16"]
   subnets = [
     {
