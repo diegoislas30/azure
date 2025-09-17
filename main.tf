@@ -150,7 +150,7 @@ resource "azurerm_subnet_network_security_group_association" "subnet_01_assoc" {
   network_security_group_id = module.network_security_group.nsg_id
 
   depends_on = [
-    module.vnet_con_subnets,
+    module.vnet_xpeterraformpoc,
     module.network_security_group
   ]
 
