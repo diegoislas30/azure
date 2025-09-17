@@ -173,7 +173,6 @@ module "network_security_group" {
     }
   ]
 
-
   tags = {
     UDN      = "Xpertal"
     OWNER    = "Diego Enrique Islas Cuervo"
@@ -181,31 +180,18 @@ module "network_security_group" {
     proyecto = "terraform"
     ambiente = "dev"
   }
-
-  providers = {
-    azurerm = azurerm.xpe_shared_poc
-  }
-
 }
 
 module "vnet_xpeterraformpoc" {
   source              = "./modules/vnets"
-  vnet_name           = "xpterraformpoc-vnet"
+  vnet_name           = "xpeterraformpoc-vnet"
   resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
   location            = module.resource_group_xpeterraformpoc.resource_group_location
   address_space       = ["10.0.0.0/16"]
 
   subnets = [
-    {
-      name           = "web"
-      address_prefix = "10.0.1.0/24"
-      nsg_id         = module.network_security_group.nsg_id
-    },
-    {
-      name           = "app"
-      address_prefix = "10.0.2.0/24"
-      # sin NSG ni RT
-    }
+    { name = "web", address_prefix = "10.0.1.0/24", nsg_id = module.network_security_group.nsg_id },
+    { name = "app", address_prefix = "10.0.2.0/24", nsg_id = null }
   ]
 
   tags = {
@@ -214,10 +200,12 @@ module "vnet_xpeterraformpoc" {
     xpeowner = "diegoenrique.islas@xpertal.com"
     proyecto = "terraform"
     ambiente = "dev"
-  }
+
+}
 
   providers = {
     azurerm = azurerm.xpe_shared_poc
   }
-
 }
+
+
