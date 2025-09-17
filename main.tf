@@ -145,8 +145,8 @@ module "resource_group_xpeterraformpoc3" {
 module "network_security_group" {
   source              = "./modules/network_security_group"
   nsg_name            = "xpeterraformpoc-nsg"
-  resource_group_name = module.resource_group_xpeterraformpoc.name
-  location            = module.resource_group_xpeterraformpoc.location
+  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
+  location            = module.resource_group_xpeterraformpoc.resource_group_location
 
   security_rules = [
     {
@@ -191,8 +191,8 @@ module "network_security_group" {
 module "vnet_xpeterraformpoc" {
   source              = "./modules/vnets"
   vnet_name           = "xpterraformpoc-vnet"
-  resource_group_name = module.resource_group_xpeterraformpoc.name
-  location            = module.resource_group_xpeterraformpoc.location
+  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
+  location            = module.resource_group_xpeterraformpoc.resource_group_location
   address_space       = ["10.0.0.0/16"]
 
   subnets = [
