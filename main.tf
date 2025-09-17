@@ -145,88 +145,36 @@ module "resource_group_xpeterraformpoc3" {
 module "network_security_group" {
   source              = "./modules/network_security_group"
   nsg_name            = "xpeterraformpoc-nsg"
-  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
-  location            = module.resource_group_xpeterraformpoc.resource_group_location
-
-  security_rules = [
-    {
-      name                       = "Allow-HTTP"
-      priority                   = 100
-      direction                  = "Inbound"
-      access                     = "Allow"
-      protocol                   = "Tcp"
-      source_port_range          = "*"
-      destination_port_range     = "80"
-      source_address_prefix      = "*"
-      destination_address_prefix = "*"
-    },
-    {
-      name                       = "Allow-HTTPS"
-      priority                   = 110
-      direction                  = "Inbound"
-      access                     = "Allow"
-      protocol                   = "Tcp"
-      source_port_range          = "*"
-      destination_port_range     = "443"
-      source_address_prefix      = "*"
-      destination_address_prefix = "*"
-    }
-
-  ]
-
-  tags = {
-    UDN      = "Xpertal"
-    OWNER    = "Diego Enrique Islas Cuervo"
-    xpeowner = "diegoenrique.islas@xpertal.com"
-    proyecto = "terraform"
+  resource_group_name = module.resource_group_xpeterraformpoc.name
+  location            = module.resource_group_xpeterraformpoc.location
+  tags                = {
     ambiente = "dev"
-
-}
-
-  providers = {
-
-    azurerm = azurerm.xpe_shared_poc
-  
+    proyecto = "terraform"
   }
-  
-
 }
-
-
 
 module "vnet_xpeterraformpoc" {
   source              = "./modules/vnets"
-  vnet_name           = "xpeterraformpoc-vnet"
-  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
-  location            = module.resource_group_xpeterraformpoc.resource_group_location
+  vnet_name           = "xpterraformpoc-vnet"
+  resource_group_name = module.resource_group_xpeterraformpoc.name
+  location            = module.resource_group_xpeterraformpoc.location
   address_space       = ["10.0.0.0/16"]
 
   subnets = [
     {
       name           = "web"
       address_prefix = "10.0.1.0/24"
-      nsg_id         = module.network_security_group.nsg_id  # 🔑 Aquí se asocia el NSG
+      nsg_id         = module.network_security_group.nsg_id
     },
     {
       name           = "app"
       address_prefix = "10.0.2.0/24"
+      # sin NSG ni RT
     }
   ]
 
   tags = {
-    UDN      = "Xpertal"
-    OWNER    = "Diego Enrique Islas Cuervo"
-    xpeowner = "diegoenrique.islas@xpertal.com"
-    proyecto = "terraform"
     ambiente = "dev"
+    proyecto = "terraform"
   }
-
-  providers = {
-    azurerm = azurerm.xpe_shared_poc
-  }
-
-  depends_on = [module.network_security_group]
 }
-
-
-## test ## 
