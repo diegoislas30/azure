@@ -171,8 +171,28 @@ module "network_security_group" {
       source_address_prefix      = "*"
       destination_address_prefix = "*"
     }
+
   ]
+
+  tags = {
+    UDN      = "Xpertal"
+    OWNER    = "Diego Enrique Islas Cuervo"
+    xpeowner = "diegoenrique.islas@xpertal.com"
+    proyecto = "terraform"
+    ambiente = "dev"
+
 }
+
+  providers = {
+
+    azurerm = azurerm.xpe_shared_poc
+  
+  }
+  
+
+}
+
+
 
 module "vnet_xpeterraformpoc" {
   source              = "./modules/vnets"
