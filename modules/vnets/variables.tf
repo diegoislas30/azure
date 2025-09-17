@@ -4,12 +4,12 @@ variable "vnet_name" {
 }
 
 variable "location" {
-  description = "Región de Azure."
+  description = "Región de Azure donde se creará la VNet."
   type        = string
 }
 
 variable "resource_group_name" {
-  description = "Nombre del Resource Group."
+  description = "Nombre del Resource Group donde se creará la VNet."
   type        = string
 }
 
@@ -19,17 +19,24 @@ variable "address_space" {
 }
 
 variable "subnets" {
-  description = "Lista de subnets con configuraciones opcionales (NSG, route table, delegations)."
+  description = <<EOT
+Lista de subnets que se crearán dentro de la VNet.
+Opcionalmente puedes asociar:
+ - nsg_id (Network Security Group)
+ - route_table_id (Route Table)
+ - delegations (delegaciones para servicios de Azure, ej. App Service, ACI, etc.)
+EOT
+
   type = list(object({
-    name            = string
-    address_prefix  = string
-    nsg_id          = optional(string)
-    route_table_id  = optional(string)
-    delegations     = optional(list(object({
+    name           = string
+    address_prefix = string
+    nsg_id         = optional(string, null)
+    route_table_id = optional(string, null)
+    delegations = optional(list(object({
       name         = string
       service_name = string
       actions      = list(string)
-    })))
+    })), [])
   }))
   default = []
 }
@@ -37,9 +44,9 @@ variable "subnets" {
 variable "peerings" {
   description = "Configuración de peerings con otras VNets."
   type = list(object({
-    name                  = string
-    remote_vnet_id        = string
-    allow_vnet_access     = optional(bool, true)
+    name                   = string
+    remote_vnet_id         = string
+    allow_vnet_access      = optional(bool, true)
     allow_forwarded_traffic = optional(bool, false)
     allow_gateway_transit   = optional(bool, false)
     use_remote_gateways     = optional(bool, false)
