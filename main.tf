@@ -1,4 +1,4 @@
-lol module "resource_group_xpeterraformpoc" {
+module "resource_group_xpeterraformpoc" {
   source = "./modules/resource_group"
 
   resource_group_name = "xpeterraformpoc-rg"
