@@ -143,85 +143,88 @@ module "resource_group_xpeterraformpoc3" {
 # }
 
 
-  module "network_security_group" {
-    source = "./modules/network_security_group"
+module "network_security_group" {
+  source              = "./modules/network_security_group"
+  nsg_name            = "xpeterraformpoc2-nsg"
+  resource_group_name = module.resource_group_xpeterraformpoc2.resource_group_name
+  location            = module.resource_group_xpeterraformpoc2.resource_group_location
 
-    nsg_name            = "xpeterraformpoc2-nsg"
-    resource_group_name = module.resource_group_xpeterraformpoc2.resource_group_name
-    location            = module.resource_group_xpeterraformpoc2.resource_group_location
-
-    security_rules = [
-      {
-        name                       = "Allow-HTTP"
-        priority                   = 100
-        direction                  = "Inbound"
-        access                     = "Allow"
-        protocol                   = "Tcp"
-        source_port_range          = "*"
-        destination_port_range     = "80"
-        source_address_prefix      = "*"
-        destination_address_prefix = "*"
-      },
-      {
-        name                       = "Allow-HTTPS"
-        priority                   = 110
-        direction                  = "Inbound"
-        access                     = "Allow"
-        protocol                   = "Tcp"
-        source_port_range          = "*"
-        destination_port_range     = "443"
-        source_address_prefix      = "*"
-        destination_address_prefix = "*"
-      }
-    ]
-
-    tags = {
-      UDN      = "Xpertal"
-      OWNER    = "Guillermo Yam"
-      xpeowner = "guillermo.yam@xpertal.com"
-      proyecto = "terraform"
-      ambiente = "dev"
+  security_rules = [
+    {
+      name                       = "Allow-HTTP"
+      priority                   = 100
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_range          = "*"
+      destination_port_range     = "80"
+      source_address_prefix      = "*"
+      destination_address_prefix = "*"
+    },
+    {
+      name                       = "Allow-HTTPS"
+      priority                   = 110
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_range          = "*"
+      destination_port_range     = "443"
+      source_address_prefix      = "*"
+      destination_address_prefix = "*"
     }
+  ]
 
+  tags = {
+    UDN      = "Xpertal"
+    OWNER    = "Guillermo Yam"
+    xpeowner = "guillermo.yam@xpertal.com"
+    proyecto = "terraform"
+    ambiente = "dev"
   }
 
-  module "vnet_terraform2" {
-    source = "./modules/vnets"
+  providers = {
+    azurerm = azurerm.xpe_shared_poc
+  }
+}
 
-    vnet_name           = "xpeterraformpoc2-vnet"
-    location            = module.resource_group_xpeterraformpoc2.resource_group_location
-    resource_group_name = module.resource_group_xpeterraformpoc2.resource_group_name
-    address_space       = ["20.0.0.0.0/16"]
+module "vnet_xpeterraformpoc2" {
+  source = "./modules/vnets"
 
-    subnets = [
-      {
-        name           = "web"
-        address_prefix = "20.0.10.0./24"
-      },
-
-      {
-        name           = "app"
-        address_prefix = "20.0.20.0/24"
-      }
-    ]
-
-    tags = {
-      UDN      = "Xpertal"
-      OWNER    = "Guillermo Yam"
-      xpeowner = "guillermo.yam@xpertal.com"
-      proyecto = "terraform"
-      ambiente = "dev"
+  vnet_name           = "xpeterraformpoc2-vnet"
+  location            = module.resource_group_xpeterraformpoc2.resource_group_location
+  resource_group_name = module.resource_group_xpeterraformpoc2.resource_group_name
+  address_space       = ["20.0.0.0/16"]
+  subnets = [
+    {
+      name           = "web"
+      address_prefix = "20.0.10.0/24"
+    },
+    {
+      name           = "app"
+      address_prefix = "20.0.20.0/24"
     }
+  ]
 
-    providers = {
-      azurerm = azurerm.xpe_shared_poc
-    }
 
+  tags = {
+    UDN      = "Xpertal"
+    OWNER    = "Guillermo Yam"
+    xpeowner = "guillermo.yam@xpertal.com"
+    proyecto = "terraform"
+    ambiente = "dev"
   }
 
-  resource "azurerm_subnet_network_security_group_association" "example" {
-    subnet_id                 = module.vnet_terraform2.subnet_ids_["web"]
-    network_security_group_id = module.network_security_group.nsg_id
+  providers = {
+    azurerm = azurerm.xpe_shared_poc
   }
+
+}
+
+resource "azurerm_subnet_network_security_group_association" "web" {
+  subnet_id                 = module.vnet_terraform2.subnet_ids["web"]
+  network_security_group_id = module.network_security_group.nsg_id
+}
+
+
 
   
