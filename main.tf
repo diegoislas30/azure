@@ -222,7 +222,7 @@ module "vnet_xpeterraformpoc2" {
 
 resource "azurerm_subnet_network_security_group_association" "web_assoc" {
   provider                  = azurerm.xpe_shared_poc
-  subnet_id                 = module.vnet_terraform2.subnet_ids["web"]
+  subnet_id                 = module.xpeterraformpoc2-vnet.subnet_ids["web"]
   network_security_group_id = module.network_security_group.nsg_id
 }
 
