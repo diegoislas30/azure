@@ -1,15 +1,9 @@
-# modules/resource_group/outputs.tf
-output "resource_group_name" {
-  description = "Resource group name"
-  value       = azurerm_resource_group.this.name
-}
-
-output "resource_group_location" {
-  description = "Resource group location"
-  value       = azurerm_resource_group.this.location
-}
-
 output "id" {
-  description = "Resource group ID"
-  value       = azurerm_resource_group.this.id
+  value       = azurerm_network_security_group.this.id
+  description = "ID del NSG"
+}
+
+output "name" {
+  value       = azurerm_network_security_group.this.name
+  description = "Nombre del NSG"
 }
