@@ -349,6 +349,18 @@ module "network_security_group_hub" {
       source_address_prefix      = "*"
       destination_address_prefix = "*"
     }
+
+    {
+        name                       = "Allow-AzureLoadBalancer"
+        priority                   = 120
+        direction                  = "Inbound"
+        access                     = "Allow"
+        protocol                   = "*"
+        source_port_range          = "*"
+        destination_port_range     = "*"
+        source_address_prefix      = "AzureLoadBalancer"
+        destination_address_prefix = "*"
+    }
   ]
 
   tags = {
