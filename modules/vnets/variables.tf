@@ -1,5 +1,25 @@
+variable "vnet_name" {
+  description = "Nombre de la VNET"
+  type        = string
+}
+
+variable "resource_group_name" {
+  description = "Resource group donde se creará la VNET"
+  type        = string
+}
+
+variable "location" {
+  description = "Región de Azure"
+  type        = string
+}
+
+variable "address_space" {
+  description = "Espacio de direcciones de la VNET"
+  type        = list(string)
+}
+
 variable "subnets" {
-  description = "Lista de subnets"
+  description = "Lista de subnets a crear dentro de la VNET"
   type = list(object({
     name                      = string
     address_prefix            = string
@@ -7,29 +27,8 @@ variable "subnets" {
   }))
 }
 
-variable "vnet_name" {
-  description = "Nombre de la Virtual Network"
-  type        = string
-}
-
-variable "address_space" {
-  description = "Espacio de direcciones de la VNet"
-  type        = list(string)
-}
-
-variable "resource_group_name" {
-  description = "Nombre del Resource Group donde se creará la VNet"
-  type        = string
-}
-
-variable "location" {
-  description = "Región donde se creará la VNet"
-  type        = string
-}
-
 variable "tags" {
-  description = "Etiquetas para los recursos"
+  description = "Tags aplicados a los recursos"
   type        = map(string)
   default     = {}
 }
-
