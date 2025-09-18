@@ -1,36 +1,34 @@
 variable "vnet_name" {
+  description = "Nombre de la Virtual Network"
   type        = string
-  description = "Nombre de la VNet"
 }
 
 variable "resource_group_name" {
+  description = "Nombre del Resource Group"
   type        = string
-  description = "Resource Group donde se creará la VNet"
 }
 
 variable "location" {
+  description = "Región de Azure"
   type        = string
-  description = "Ubicación de la VNet"
 }
 
 variable "address_space" {
+  description = "Espacio de direcciones de la VNet"
   type        = list(string)
-  description = "Espacios de direcciones de la VNet"
 }
 
 variable "subnets" {
-  description = "Lista de subnets a crear con configuración opcional de NSG y route table."
+  description = "Lista de subnets a crear (con NSG opcional)"
   type = list(object({
     name           = string
     address_prefix = string
     nsg_id         = optional(string)
-    route_table_id = optional(string)
   }))
 }
 
-
 variable "tags" {
+  description = "Tags para aplicar a los recursos"
   type        = map(string)
   default     = {}
-  description = "Tags a aplicar"
 }
