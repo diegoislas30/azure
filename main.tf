@@ -191,8 +191,8 @@ module "network_security_group_xpeterraformpoc2" {
 module "vnet_xpeterraformpoc" {
   source              = "./modules/vnets"
   vnet_name           = "xpeterraformpoc-vnet"
-  resource_group_name = module.resource_group_xpeterraformpoc.name
-  location            = module.resource_group_xpeterraformpoc.location
+  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
+  location            = module.resource_group_xpeterraformpoc.resource_group_location
   address_space       = ["10.0.0.0/16"]
 
   subnets = [
