@@ -256,9 +256,10 @@ module "route_table" {
 
 }
 
-resource "azurerm_route_table_association" "web_rt_assoc" {
-  provider           = azurerm.xpe_shared_poc
-  subnet_id          = module.vnet_xpeterraformpoc2.subnet_ids["app"]
-  route_table_id     = module.route_table.rt_id
+resource "azurerm_subnet_route_table_association" "web_rt_assoc" {
+  provider       = azurerm.xpe_shared_poc
+  subnet_id      = module.vnet_xpeterraformpoc2.subnet_ids["app"]
+  route_table_id = module.route_table.rt_id
 }
+
   
