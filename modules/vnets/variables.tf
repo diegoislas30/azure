@@ -1,10 +1,10 @@
 variable "vnet_name" {
-  description = "Nombre de la VNET"
+  description = "Nombre de la Virtual Network"
   type        = string
 }
 
 variable "resource_group_name" {
-  description = "Resource group donde se creará la VNET"
+  description = "Nombre del Resource Group donde se crea la VNet"
   type        = string
 }
 
@@ -14,21 +14,20 @@ variable "location" {
 }
 
 variable "address_space" {
-  description = "Espacio de direcciones de la VNET"
+  description = "Espacio de direcciones de la VNet"
   type        = list(string)
 }
 
 variable "subnets" {
-  description = "Lista de subnets a crear dentro de la VNET"
+  description = "Lista de subnets a crear"
   type = list(object({
-    name                      = string
-    address_prefix            = string
-    network_security_group_id = optional(string)
+    name           = string
+    address_prefix = string
   }))
 }
 
 variable "tags" {
-  description = "Tags aplicados a los recursos"
+  description = "Etiquetas comunes"
   type        = map(string)
   default     = {}
 }

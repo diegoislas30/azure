@@ -1,36 +1,33 @@
-variable "nsg_name" {
-  description = "Nombre del Network Security Group."
-  type        = string
-}
-
-variable "location" {
-  description = "Región de Azure donde se creará el NSG."
+variable "vnet_name" {
+  description = "Nombre de la Virtual Network"
   type        = string
 }
 
 variable "resource_group_name" {
-  description = "Nombre del Resource Group donde se creará el NSG."
+  description = "Nombre del Resource Group donde se crea la VNet"
   type        = string
 }
 
-variable "security_rules" {
-  description = "Lista de reglas de seguridad para el NSG."
+variable "location" {
+  description = "Región de Azure"
+  type        = string
+}
+
+variable "address_space" {
+  description = "Espacio de direcciones de la VNet"
+  type        = list(string)
+}
+
+variable "subnets" {
+  description = "Lista de subnets a crear"
   type = list(object({
-    name                       = string
-    priority                   = number
-    direction                  = string   # Inbound / Outbound
-    access                     = string   # Allow / Deny
-    protocol                   = string   # Tcp / Udp / * 
-    source_port_range          = string
-    destination_port_range     = string
-    source_address_prefix      = string
-    destination_address_prefix = string
+    name           = string
+    address_prefix = string
   }))
-  default = []
 }
 
 variable "tags" {
-  description = "Etiquetas aplicadas al recurso."
+  description = "Etiquetas comunes"
   type        = map(string)
   default     = {}
 }
