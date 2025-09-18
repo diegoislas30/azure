@@ -170,57 +170,70 @@
 ## =================================================================== ##
 
 
-module "resource_group_xpeterraformpoc" {
+##############################################
+# Resource Groups
+##############################################
+
+
+# =========================
+# Resource Group Hub
+# =========================
+
+module "resource_group_hub" {
   source = "./modules/resource_group"
 
-  resource_group_name = "xpeterraformpoc-rg"
+  resource_group_name = "xpeterraformpoc-hub-rg"
   location            = "southcentralus"
-
-  tags = {
-    UDN      = "Xpertal"
-    OWNER    = "Guillermo Yam"
-    xpeowner = "guillermo.yam@xpertal.com"
-    proyecto = "terraform"
-    ambiente = "dev"
+    tags = {
+        UDN      = "Xpertal"
+        OWNER    = "Diego Enrique Islas Cuervo"
+        xpeowner = "diegoenrique.islas@xpertal.com"
+        proyecto = "terraform"
+        ambiente = "dev"
     }
 
     providers = {
-    azurerm = azurerm.xpe_shared_poc
+        azurerm = azurerm.xpe_shared_poc
     }
 
 }
 
-module "resource_group_xpeterraformpoc2" {
+module "resource_group_spoke" {
   source = "./modules/resource_group"
 
-  resource_group_name = "xpeterraformpoc-rg2"
+  resource_group_name = "xpeterraformpoc-spoke-rg"
   location            = "southcentralus"
-
-  tags = {
-    UDN      = "Xpertal"
-    OWNER    = "Guillermo Yam"
-    xpeowner = "guillermo.yam@xpertal.com"
-    proyecto = "terraform"
-    ambiente = "dev"
+    tags = {
+        UDN      = "Xpertal"
+        OWNER    = "Diego Enrique Islas Cuervo"
+        xpeowner = "diegoenrique.islas@xpertal.com"
+        proyecto = "terraform"
+        ambiente = "dev"
     }
-
     providers = {
-    azurerm = azurerm.xpe_shared_poc
+        azurerm = azurerm.xpe_shared_poc
     }
-
 }
 
-module "vnet_main" {
+##############################################
+
+##############################################
+
+# Virtual Networks
+
+# =========================
+
+module "vnet_hub" {
   source              = "./modules/vnets"
-  vnet_name           = "vnet-main"
-  location            = module.resource_group_xpeterraformpoc.resource_group_location
-  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
-  address_space       = ["10.20.0.0/16"]
+  vnet_name           = "xpeterraformpoc-hub-vnet"
+  location            = module.resource_group_hub.resource_group_location
+  resource_group_name = module.resource_group_hub.resource_group_name
+  address_space       = ["10.100.0.0/16"]
 
-  subnets = [
+    subnets = [
     {
       name           = "functions"
-      address_prefix = "10.20.1.0/24"
+      address_prefix = "10.100.1.0/24"
       delegation = {
         name = "delegate-functions"
         service_delegation = {
@@ -228,30 +241,36 @@ module "vnet_main" {
           actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
         }
       }
-    },
-
-    {
-      name           = "databases"
-      address_prefix = "10.20.2.0/24"
     }
-    
   ]
 
   peerings = [
     {
-      name                      = "peer-to-vnet-spoke"
-      remote_virtual_network_id = module.vnet_spoke.vnet_id
-      allow_virtual_network_access = true
-      allow_forwarded_traffic      = true
-      allow_gateway_transit        = false
-      use_remote_gateways          = false
+      name               = "hub-to-spoke"
+      remote_vnet_id     = module.vnet_spoke.vnet_id
+      remote_vnet_name   = module.vnet_spoke.vnet_name
+      remote_rg_name     = module.resource_group_spoke.resource_group_name
+
+      local = {
+        allow_virtual_network_access = true
+        allow_forwarded_traffic      = true
+        allow_gateway_transit        = false
+        use_remote_gateways          = false
+      }
+
+      remote = {
+        allow_virtual_network_access = true
+        allow_forwarded_traffic      = true
+        allow_gateway_transit        = false
+        use_remote_gateways          = false
+      }
     }
   ]
 
   tags = {
     UDN      = "Xpertal"
-    OWNER    = "Guillermo Yam"
-    xpeowner = "guillermo.yam@xpertal.com"
+    OWNER    = "Diego Islas"
+    xpeowner = "diegoenrique.islas@xpertal.com"
     proyecto = "terraform"
     ambiente = "qa"
   }
@@ -261,34 +280,40 @@ module "vnet_main" {
   }
 }
 
-# Otra VNet para demostrar el peering
 module "vnet_spoke" {
   source              = "./modules/vnets"
-  vnet_name           = "vnet-spoke"
-  location            = module.resource_group_xpeterraformpoc2.resource_group_location
-  resource_group_name = module.resource_group_xpeterraformpoc2.resource_group_name
-  address_space       = ["10.30.0.0/16"]
+  vnet_name           = "xpeterraformpoc-spoke-vnet"
+  location            = module.resource_group_spoke.resource_group_location
+  resource_group_name = module.resource_group_spoke.resource_group_name
+  address_space       = ["20.0.0.0/16"]
 
-  subnets = [
+    subnets = [
     {
-      name           = "backend"
-      address_prefix = "10.30.1.0/24"
+      name           = "app"
+      address_prefix = "20.0.10.0/24"
+    },
+
+    {
+      name           = "db"
+      address_prefix = "20.0.20.0/24"
     }
-  ]
 
-  tags = {
+    ]
+
+tags = {
     UDN      = "Xpertal"
-    OWNER    = "Pedro Guerrero"
-    xpeowner = "pedrojulio.guerrero@xpertal.com"
+    OWNER    = "Diego Islas"
+    xpeowner = "diegoenrique.islas@xpertal.com"
     proyecto = "terraform"
-    ambiente = "prd"
-  }
+    ambiente = "qa"
+    }
 
-  providers = {
-    azurerm = azurerm.xpe_shared_poc
-  }
+    providers = {
+        azurerm = azurerm.xpe_shared_poc
+    }
 }
 
+    
 
 
-
+  

@@ -4,22 +4,22 @@ variable "vnet_name" {
 }
 
 variable "resource_group_name" {
-  description = "Nombre del Resource Group"
+  description = "Resource Group de la VNet"
   type        = string
 }
 
 variable "location" {
-  description = "Región de Azure"
+  description = "Ubicación de la VNet"
   type        = string
 }
 
 variable "address_space" {
-  description = "Espacios de direcciones para la VNet"
+  description = "Espacio de direcciones de la VNet"
   type        = list(string)
 }
 
 variable "subnets" {
-  description = "Lista de subnets a crear dentro de la VNet"
+  description = "Lista de subnets con configuración opcional de delegación"
   type = list(object({
     name           = string
     address_prefix = string
@@ -35,26 +35,37 @@ variable "subnets" {
 }
 
 variable "peerings" {
-  description = "Lista de peerings opcionales para la VNet"
+  description = "Lista de peerings (local + remote)"
   type = list(object({
-    name                         = string
-    remote_virtual_network_id    = string
-    allow_virtual_network_access = optional(bool, true)
-    allow_forwarded_traffic      = optional(bool, false)
-    allow_gateway_transit        = optional(bool, false)
-    use_remote_gateways          = optional(bool, false)
+    name               = string
+    remote_vnet_id     = string
+    remote_vnet_name   = string
+    remote_rg_name     = string
+
+    local = object({
+      allow_virtual_network_access = bool
+      allow_forwarded_traffic      = bool
+      allow_gateway_transit        = bool
+      use_remote_gateways          = bool
+    })
+
+    remote = object({
+      allow_virtual_network_access = bool
+      allow_forwarded_traffic      = bool
+      allow_gateway_transit        = bool
+      use_remote_gateways          = bool
+    })
   }))
   default = []
 }
 
 variable "tags" {
-  description = "A mapping of tags to assign to the resources"
-  type        = object({
-    UDN       = string
-    OWNER     = string
-    xpeowner  = string
-    proyecto  = string
-    ambiente  = string
+  description = "Etiquetas a aplicar"
+  type = object({
+    UDN      = string
+    OWNER    = string
+    xpeowner = string
+    proyecto = string
+    ambiente = string
   })
-  
 }
