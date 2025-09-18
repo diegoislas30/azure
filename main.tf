@@ -177,6 +177,7 @@ module "vnet_simple" {
   tags = {
     UDN      = "Xpertal"
     OWNER    = "Diego Islas"
+    xpeowner = "diegoenrique.islas@xpertal.com"
     proyecto = "terraform"
     ambiente = "dev"
   }
