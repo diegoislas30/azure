@@ -348,7 +348,7 @@ module "network_security_group_hub" {
       destination_port_range     = "443"
       source_address_prefix      = "*"
       destination_address_prefix = "*"
-    }
+    },
 
     {
         name                       = "Allow-AzureLoadBalancer"
@@ -361,6 +361,7 @@ module "network_security_group_hub" {
         source_address_prefix      = "AzureLoadBalancer"
         destination_address_prefix = "*"
     }
+    ## Aqui cierro reglas
   ]
 
   tags = {
