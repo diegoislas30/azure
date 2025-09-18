@@ -27,4 +27,9 @@ variable "location" {
   type        = string
 }
 
+variable "tags" {
+  description = "Etiquetas para los recursos"
+  type        = map(string)
+  default     = {}
+}
 
