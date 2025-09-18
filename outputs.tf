@@ -1,19 +1,15 @@
-output "vnet_main_id" {
-  value       = module.vnet_main.vnet_id
-  description = "ID de la VNet principal"
+output "hub_vnet_id" {
+  value = module.vnet_hub.vnet_id
 }
 
-output "vnet_main_subnet_ids" {
-  value       = module.vnet_main.subnet_ids
-  description = "Subnets de la VNet principal"
+output "hub_subnet_ids" {
+  value = module.vnet_hub.subnet_ids
 }
 
-output "vnet_spoke_id" {
-  value       = module.vnet_spoke.vnet_id
-  description = "ID de la VNet spoke"
+output "spoke_vnet_id" {
+  value = module.vnet_spoke.vnet_id
 }
 
-output "vnet_spoke_subnet_ids" {
-  value       = module.vnet_spoke.subnet_ids
-  description = "Subnets de la VNet spoke"
+output "spoke_subnet_ids" {
+  value = module.vnet_spoke.subnet_ids
 }

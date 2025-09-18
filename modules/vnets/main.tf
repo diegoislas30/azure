@@ -15,7 +15,7 @@ resource "azurerm_subnet" "this" {
   address_prefixes     = [each.value.address_prefix]
 
   dynamic "delegation" {
-    for_each = each.value.delegation != null ? [each.value.delegation] : []
+    for_each = lookup(each.value, "delegation", null) != null ? [each.value.delegation] : []
     content {
       name = delegation.value.name
       service_delegation {
@@ -26,15 +26,31 @@ resource "azurerm_subnet" "this" {
   }
 }
 
-resource "azurerm_virtual_network_peering" "this" {
-  for_each = { for p in var.peerings : p.name => p }
+# Peering: local + remoto
+resource "azurerm_virtual_network_peering" "local" {
+  for_each = { for p in var.peerings : p.name_local => p }
 
-  name                         = each.value.name
-  resource_group_name          = var.resource_group_name
-  virtual_network_name         = azurerm_virtual_network.this.name
-  remote_virtual_network_id    = each.value.remote_virtual_network_id
-  allow_virtual_network_access = lookup(each.value, "allow_virtual_network_access", true)
-  allow_forwarded_traffic      = lookup(each.value, "allow_forwarded_traffic", false)
-  allow_gateway_transit        = lookup(each.value, "allow_gateway_transit", false)
-  use_remote_gateways          = lookup(each.value, "use_remote_gateways", false)
+  name                      = each.value.name_local
+  resource_group_name       = var.resource_group_name
+  virtual_network_name      = azurerm_virtual_network.this.name
+  remote_virtual_network_id = each.value.remote_vnet_id
+
+  allow_virtual_network_access = each.value.allow_virtual_network_access
+  allow_forwarded_traffic      = each.value.allow_forwarded_traffic
+  allow_gateway_transit        = each.value.allow_gateway_transit
+  use_remote_gateways          = each.value.use_remote_gateways
+}
+
+resource "azurerm_virtual_network_peering" "remote" {
+  for_each = { for p in var.peerings : p.name_remote => p }
+
+  name                      = each.value.name_remote
+  resource_group_name       = each.value.remote_resource_group
+  virtual_network_name      = each.value.remote_vnet_name
+  remote_virtual_network_id = azurerm_virtual_network.this.id
+
+  allow_virtual_network_access = each.value.remote_allow_virtual_network_access
+  allow_forwarded_traffic      = each.value.remote_allow_forwarded_traffic
+  allow_gateway_transit        = each.value.remote_allow_gateway_transit
+  use_remote_gateways          = each.value.remote_use_remote_gateways
 }
