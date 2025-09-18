@@ -1,4 +1,4 @@
-module "resource_group_xpeterraformpoc" {
+lol module "resource_group_xpeterraformpoc" {
   source = "./modules/resource_group"
 
   resource_group_name = "xpeterraformpoc-rg"
@@ -222,7 +222,7 @@ module "vnet_xpeterraformpoc2" {
 
 resource "azurerm_subnet_network_security_group_association" "web_assoc" {
   provider                  = azurerm.xpe_shared_poc
-  subnet_id                 = module.xpeterraformpoc2-vnet.subnet_ids["web"]
+  subnet_id                 = module.vnet_xpeterraformpoc2.subnet_ids["web"]
   network_security_group_id = module.network_security_group.nsg_id
 }
 
