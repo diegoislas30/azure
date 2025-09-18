@@ -1,26 +1,19 @@
-# Para el RG 1
 output "resource_group_xpeterraformpoc_name" {
-  value = module.resource_group_xpeterraformpoc.resource_group_name
+  value       = module.resource_group_xpeterraformpoc.resource_group_name
+  description = "Nombre del resource group principal"
 }
 
 output "resource_group_xpeterraformpoc_location" {
-  value = module.resource_group_xpeterraformpoc.resource_group_location
+  value       = module.resource_group_xpeterraformpoc.resource_group_location
+  description = "Ubicación del resource group principal"
 }
 
-# Para el RG 2
-output "resource_group_xpeterraformpoc2_name" {
-  value = module.resource_group_xpeterraformpoc2.resource_group_name
+output "vnet_simple_id" {
+  value       = module.vnet_simple.vnet_id
+  description = "ID de la VNet simple"
 }
 
-output "resource_group_xpeterraformpoc2_location" {
-  value = module.resource_group_xpeterraformpoc2.resource_group_location
-}
-
-# Para el RG 3
-output "resource_group_xpeterraformpoc3_name" {
-  value = module.resource_group_xpeterraformpoc3.resource_group_name
-}
-
-output "resource_group_xpeterraformpoc3_location" {
-  value = module.resource_group_xpeterraformpoc3.resource_group_location
+output "vnet_simple_subnet_ids" {
+  value       = module.vnet_simple.subnet_ids
+  description = "IDs de las subnets en la VNet simple"
 }
