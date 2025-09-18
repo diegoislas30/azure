@@ -241,7 +241,13 @@ module "vnet_hub" {
           actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
         }
       }
+    },
+
+    {
+      name           = "prueba"
+      address_prefix = "10.100.2.0/24"
     }
+
   ]
 
   peerings = [
@@ -311,8 +317,8 @@ tags = {
     providers = {
         azurerm = azurerm.xpe_shared_poc
     }
-}
 
+}
 
 module "network_security_group_hub" {
   source              = "./modules/network_security_group"
@@ -356,8 +362,17 @@ module "network_security_group_hub" {
     providers = {
         azurerm = azurerm.xpe_shared_poc
     }
+}
 
-    
+
+resource "azurerm_subnet_network_security_group_association" "prueba_assoc" {
+  provider                  = azurerm.xpe_shared_poc
+  subnet_id                 = module.vnet_hub.subnet_ids["prueba"]
+  network_security_group_id = module.network_security_group_hub.nsg_id
+}
+
+
+
 
 
 
