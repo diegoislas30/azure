@@ -190,11 +190,31 @@ module "resource_group_xpeterraformpoc" {
 
 }
 
+module "resource_group_xpeterraformpoc2" {
+  source = "./modules/resource_group"
+
+  resource_group_name = "xpeterraformpoc-rg2"
+  location            = "southcentralus"
+
+  tags = {
+    UDN      = "Xpertal"
+    OWNER    = "Guillermo Yam"
+    xpeowner = "guillermo.yam@xpertal.com"
+    proyecto = "terraform"
+    ambiente = "dev"
+    }
+
+    providers = {
+    azurerm = azurerm.xpe_shared_poc
+    }
+
+}
+
 module "vnet_main" {
   source              = "./modules/vnets"
   vnet_name           = "vnet-main"
-  location            = module.resource_group_main.resource_group_location
-  resource_group_name = module.resource_group_main.resource_group_name
+  location            = module.resource_group_xpeterraformpoc.resource_group_location
+  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
   address_space       = ["10.20.0.0/16"]
 
   subnets = [
@@ -208,7 +228,13 @@ module "vnet_main" {
           actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
         }
       }
+    },
+
+    {
+      name           = "databases"
+      address_prefix = "10.20.2.0/24"
     }
+    
   ]
 
   peerings = [
@@ -225,6 +251,7 @@ module "vnet_main" {
   tags = {
     UDN      = "Xpertal"
     OWNER    = "Guillermo Yam"
+    xpeowner = "guillermo.yam@xpertal.com"
     proyecto = "terraform"
     ambiente = "qa"
   }
@@ -238,8 +265,8 @@ module "vnet_main" {
 module "vnet_spoke" {
   source              = "./modules/vnets"
   vnet_name           = "vnet-spoke"
-  location            = module.resource_group_spoke.resource_group_location
-  resource_group_name = module.resource_group_spoke.resource_group_name
+  location            = module.resource_group_xpeterraformpoc2.resource_group_location
+  resource_group_name = module.resource_group_xpeterraformpoc2.resource_group_name
   address_space       = ["10.30.0.0/16"]
 
   subnets = [
@@ -252,6 +279,7 @@ module "vnet_spoke" {
   tags = {
     UDN      = "Xpertal"
     OWNER    = "Pedro Guerrero"
+    xpeowner = "pedrojulio.guerrero@xpertal.com"
     proyecto = "terraform"
     ambiente = "prd"
   }
@@ -264,31 +292,3 @@ module "vnet_spoke" {
 
 
 
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
