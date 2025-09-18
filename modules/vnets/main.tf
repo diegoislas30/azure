@@ -6,9 +6,9 @@ resource "azurerm_virtual_network" "this" {
   tags                = var.tags
 }
 
+# Subnets
 resource "azurerm_subnet" "this" {
-  for_each = { for s in var.subnets : s.name => s }
-
+  for_each             = { for s in var.subnets : s.name => s }
   name                 = each.value.name
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.this.name
@@ -26,31 +26,30 @@ resource "azurerm_subnet" "this" {
   }
 }
 
-# Peering: local + remoto
+# Local peering (esta VNet → remota)
 resource "azurerm_virtual_network_peering" "local" {
-  for_each = { for p in var.peerings : p.name_local => p }
-
-  name                      = each.value.name_local
+  for_each                  = { for p in var.peerings : p.name => p }
+  name                      = "${each.key}-local"
   resource_group_name       = var.resource_group_name
   virtual_network_name      = azurerm_virtual_network.this.name
   remote_virtual_network_id = each.value.remote_vnet_id
 
-  allow_virtual_network_access = each.value.allow_virtual_network_access
-  allow_forwarded_traffic      = each.value.allow_forwarded_traffic
-  allow_gateway_transit        = each.value.allow_gateway_transit
-  use_remote_gateways          = each.value.use_remote_gateways
+  allow_virtual_network_access = each.value.local.allow_virtual_network_access
+  allow_forwarded_traffic      = each.value.local.allow_forwarded_traffic
+  allow_gateway_transit        = each.value.local.allow_gateway_transit
+  use_remote_gateways          = each.value.local.use_remote_gateways
 }
 
+# Remote peering (remota → esta VNet)
 resource "azurerm_virtual_network_peering" "remote" {
-  for_each = { for p in var.peerings : p.name_remote => p }
-
-  name                      = each.value.name_remote
-  resource_group_name       = each.value.remote_resource_group
+  for_each                  = { for p in var.peerings : p.name => p }
+  name                      = "${each.key}-remote"
+  resource_group_name       = each.value.remote_rg_name
   virtual_network_name      = each.value.remote_vnet_name
   remote_virtual_network_id = azurerm_virtual_network.this.id
 
-  allow_virtual_network_access = each.value.remote_allow_virtual_network_access
-  allow_forwarded_traffic      = each.value.remote_allow_forwarded_traffic
-  allow_gateway_transit        = each.value.remote_allow_gateway_transit
-  use_remote_gateways          = each.value.remote_use_remote_gateways
+  allow_virtual_network_access = each.value.remote.allow_virtual_network_access
+  allow_forwarded_traffic      = each.value.remote.allow_forwarded_traffic
+  allow_gateway_transit        = each.value.remote.allow_gateway_transit
+  use_remote_gateways          = each.value.remote.use_remote_gateways
 }

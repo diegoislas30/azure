@@ -59,6 +59,7 @@ variable "peerings" {
   default = []
 }
 
+
 variable "tags" {
   description = "Etiquetas a aplicar"
   type = object({
