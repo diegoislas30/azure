@@ -206,6 +206,7 @@ module "vnet_xpeterraformpoc2" {
     {
       name           = "web"
       address_prefix = "20.0.20.0/24"
+      nsg_id         = null # Sin NSG asociado
     }
 
   ]
