@@ -14,13 +14,13 @@ resource "azurerm_subnet" "this" {
   address_prefixes     = [each.value.address_prefix]
 }
 
-# Asociaciones de NSG solo si nsg_id está definido
 resource "azurerm_subnet_network_security_group_association" "this" {
   for_each = {
-    for s in var.subnets : s.name => s.nsg_id
-    if try(s.nsg_id, null) != null
+    for s in var.subnets : s.name => s
+    if lookup(s, "nsg_id", null) != null
   }
 
   subnet_id                 = azurerm_subnet.this[each.key].id
-  network_security_group_id = each.value
+  network_security_group_id = each.value.nsg_id
 }
+

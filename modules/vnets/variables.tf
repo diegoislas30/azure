@@ -19,13 +19,15 @@ variable "address_space" {
 }
 
 variable "subnets" {
+  description = "Lista de subnets a crear con configuración opcional de NSG y route table."
   type = list(object({
     name           = string
     address_prefix = string
-    nsg_id         = optional(string, null)
+    nsg_id         = optional(string)
+    route_table_id = optional(string)
   }))
-  description = "Lista de subnets a crear, con NSG opcional"
 }
+
 
 variable "tags" {
   type        = map(string)
