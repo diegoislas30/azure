@@ -7,6 +7,13 @@ variable "location" {
 }
 
 variable "tags" {
-  type    = map(string)
-  default = {}
+  description = "A mapping of tags to assign to the resources"
+  type        = object({
+    UDN       = string
+    OWNER     = string
+    xpeowner  = string
+    proyecto  = string
+    ambiente  = string
+  })
+  
 }
