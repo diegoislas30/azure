@@ -135,6 +135,40 @@
 
 ## =================================================================== ##
 
+## == Ejemplo de declarar el modulo de vnet sin peerings ni delegaciones ==
+# module "vnet_simple" {
+#   source              = "./modules/vnets"
+#   vnet_name           = "vnet-simple"
+#   location            = module.resource_group_xpeterraformpoc.resource_group_location
+#   resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
+#   address_space       = ["10.10.0.0/16"]
+#
+#   subnets = [
+#     {
+#       name           = "web"
+#       address_prefix = "10.10.1.0/24"
+#     },
+#     {
+#       name           = "app"
+#       address_prefix = "10.10.2.0/24"
+#     }
+#   ]
+#
+#   tags = {
+#     UDN      = "Xpertal"
+#     OWNER    = "Diego Islas"
+#     xpeowner = "diegoenrique.islas@xpertal.com"
+#     proyecto = "terraform"
+#     ambiente = "dev"
+#   }
+#
+#   providers = {
+#     azurerm = azurerm.xpe_shared_poc
+#   }
+# }
+
+## =================================================================== ##
+
 
 module "resource_group_xpeterraformpoc" {
   source = "./modules/resource_group"
@@ -156,36 +190,78 @@ module "resource_group_xpeterraformpoc" {
 
 }
 
-module "vnet_simple" {
+module "vnet_main" {
   source              = "./modules/vnets"
-  vnet_name           = "vnet-simple"
-  location            = module.resource_group_xpeterraformpoc.resource_group_location
-  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
-  address_space       = ["10.10.0.0/16"]
+  vnet_name           = "vnet-main"
+  location            = module.resource_group_main.resource_group_location
+  resource_group_name = module.resource_group_main.resource_group_name
+  address_space       = ["10.20.0.0/16"]
 
   subnets = [
     {
-      name           = "web"
-      address_prefix = "10.10.1.0/24"
-    },
+      name           = "functions"
+      address_prefix = "10.20.1.0/24"
+      delegation = {
+        name = "delegate-functions"
+        service_delegation = {
+          name    = "Microsoft.Web/serverFarms"
+          actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+        }
+      }
+    }
+  ]
+
+  peerings = [
     {
-      name           = "app"
-      address_prefix = "10.10.2.0/24"
+      name                      = "peer-to-vnet-spoke"
+      remote_virtual_network_id = module.vnet_spoke.vnet_id
+      allow_virtual_network_access = true
+      allow_forwarded_traffic      = true
+      allow_gateway_transit        = false
+      use_remote_gateways          = false
     }
   ]
 
   tags = {
     UDN      = "Xpertal"
-    OWNER    = "Diego Islas"
-    xpeowner = "diegoenrique.islas@xpertal.com"
+    OWNER    = "Guillermo Yam"
     proyecto = "terraform"
-    ambiente = "dev"
+    ambiente = "qa"
   }
 
   providers = {
     azurerm = azurerm.xpe_shared_poc
   }
 }
+
+# Otra VNet para demostrar el peering
+module "vnet_spoke" {
+  source              = "./modules/vnets"
+  vnet_name           = "vnet-spoke"
+  location            = module.resource_group_spoke.resource_group_location
+  resource_group_name = module.resource_group_spoke.resource_group_name
+  address_space       = ["10.30.0.0/16"]
+
+  subnets = [
+    {
+      name           = "backend"
+      address_prefix = "10.30.1.0/24"
+    }
+  ]
+
+  tags = {
+    UDN      = "Xpertal"
+    OWNER    = "Pedro Guerrero"
+    proyecto = "terraform"
+    ambiente = "prd"
+  }
+
+  providers = {
+    azurerm = azurerm.xpe_shared_poc
+  }
+}
+
+
 
 
 
