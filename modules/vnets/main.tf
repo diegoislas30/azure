@@ -15,13 +15,13 @@ resource "azurerm_subnet" "this" {
   address_prefixes     = [each.value.address_prefix]
 }
 
-# Asociación opcional de NSG a cada subnet
+# 🚀 Aquí la clave: solo iteramos las subnets que tengan NSG
 resource "azurerm_subnet_network_security_group_association" "this" {
   for_each = {
-    for s in var.subnets : s.name => s
-    if try(s.network_security_group_id, null) != null
+    for s in var.subnets : s.name => s.network_security_group_id
+    if s.network_security_group_id != null && s.network_security_group_id != ""
   }
 
   subnet_id                 = azurerm_subnet.this[each.key].id
-  network_security_group_id = each.value.network_security_group_id
+  network_security_group_id = each.value
 }

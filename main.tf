@@ -191,15 +191,15 @@ module "network_security_group_xpeterraformpoc2" {
 module "vnet_xpeterraformpoc" {
   source              = "./modules/vnets"
   vnet_name           = "xpeterraformpoc-vnet"
-  resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
-  location            = module.resource_group_xpeterraformpoc.resource_group_location
+  resource_group_name = module.resource_group_xpeterraformpoc.name
+  location            = module.resource_group_xpeterraformpoc.location
   address_space       = ["10.0.0.0/16"]
 
   subnets = [
     {
       name                      = "web"
       address_prefix            = "10.0.1.0/24"
-      network_security_group_id = module.network_security_group_xpeterraformpoc2.nsg_id
+      network_security_group_id = module.network_security_group_xpeterraformpoc2.id
     },
     {
       name           = "app"
@@ -220,4 +220,4 @@ module "vnet_xpeterraformpoc" {
   }
 
 }
-  
+
