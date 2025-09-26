@@ -383,63 +383,47 @@
 #   network_security_group_id = module.network_security_group_hub.nsg_id
 # }
 
-module "resource_group" {
-  source    = "./modules/resource_group"
+### ======================================== ##
 
-  resource_group_name = "terraform-import-test"
-  location = "southcentralus"  
-  tags = {
-    UDN      = "Xpertal"
-    OWNER    = "Diego Enrique Islas Cuervo"
-    xpeowner = "diegoenrique.islas@xpertal.com"
-    proyecto = "terraform"
-    ambiente = "dev"
-  }
-  providers = {
-    azurerm = azurerm.xpe_shared_poc
-  }
-}
+## Modulo de Imagenes doradas" ##
 
-module "network_security_group" {
-  source              = "./modules/network_security_group"
-  nsg_name            = "terraform-import-test-nsg"
-  resource_group_name = module.resource_group.resource_group_name
-  location            = module.resource_group.resource_group_location
+## ======================================= ##
 
-  security_rules = [
-    {
-      name                       = "Allow-HTTP"
-      priority                   = 100
-      direction                  = "Inbound"
-      access                     = "Allow"
-      protocol                   = "Tcp"
-      source_port_range          = "*"
-      destination_port_range     = "80"
-      source_address_prefix      = "*"
-      destination_address_prefix = "*"
-    },
-    {
-      name                       = "Allow-HTTPS"
-      priority                   = 110
-      direction                  = "Inbound"
-      access                     = "Allow"
-      protocol                   = "Tcp"
-      source_port_range          = "*"
-      destination_port_range     = "443"
-      source_address_prefix      = "*"
-      destination_address_prefix = "*"
-    }
-  ]
+# module "gallery_xpertal_windows" {
+#   source    = "./modules/gallery"
+#   providers = { azurerm = azurerm.xpertal_shared_xcs }
+#
+#   resource_group_name = "rg-ImageTemplate_Xpertal"
+#   location            = "southcentralus"              # tal cual se ve en tu captura
+#   gallery_name        = "XpertalSharedImageWindows"
+#   description         = "Xpertal shared images"
+#   tags = {
+#     "Ambiente"           = "Template"
+#     "Unidad de Negocio"  = "Xpertal"
+#   }
+# }
+#
+# module "image_windows_test" {
+#   source    = "./modules/gallery_image"
+#   providers = { azurerm = azurerm.xpertal_shared_xcs }
+#
+#   resource_group_name = "rg-ImageTemplate_Xpertal"
+#   location            = "southcentralus"
+#   gallery_name        = module.gallery_xpertal_windows.name
+#   image_name          = "WindowsTest"
+#
+#   os_type            = "Windows"
+#   hyper_v_generation = "V2"           # ajusta a "V1" si tu definición es Gen1
+#
+#   identifier = {
 
-  tags = {
-    UDN      = "Xpertal"
-    OWNER    = "Diego Enrique Islas Cuervo"
-    xpeowner = "diegoenrique.islas@xpertal.com"
-    proyecto = "terraform"
-    ambiente = "dev"
-  }
-  providers = {
-    azurerm = azurerm.xpe_shared_poc
-  }
-}
-
+#     publisher = "MicrosoftWindowsServer"
+#     offer     = "WindowsServer"
+#     sku       = "2022-datacenter"
+#   }
+#
+#   tags = {
+#     "Ambiente"          = "Template"
+#     "Unidad de Negocio" = "Xpertal"
+#   }
+# }
