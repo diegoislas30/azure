@@ -179,41 +179,40 @@
 # Resource Group Hub
 # =========================
 
-module "resource_group_hub" {
-  source = "./modules/resource_group"
-
-  resource_group_name = "xpeterraformpoc-hub-rg"
-  location            = "southcentralus"
-    tags = {
-        UDN      = "Xpertal"
-        OWNER    = "Diego Enrique Islas Cuervo"
-        xpeowner = "diegoenrique.islas@xpertal.com"
-        proyecto = "terraform"
-        ambiente = "dev"
-    }
-
-    providers = {
-        azurerm = azurerm.xpe_shared_poc
-    }
-
-}
-
-module "resource_group_spoke" {
-  source = "./modules/resource_group"
-
-  resource_group_name = "xpeterraformpoc-spoke-rg"
-  location            = "southcentralus"
-    tags = {
-        UDN      = "Xpertal"
-        OWNER    = "Diego Enrique Islas Cuervo"
-        xpeowner = "diegoenrique.islas@xpertal.com"
-        proyecto = "terraform"
-        ambiente = "dev"
-    }
-    providers = {
-        azurerm = azurerm.xpe_shared_poc
-    }
-}
+# module "resource_group_hub" {
+#   source = "./modules/resource_group"
+#
+#   resource_group_name = "xpeterraformpoc-hub-rg"
+#   location            = "southcentralus"
+#   tags = {
+#     UDN      = "Xpertal"
+#     OWNER    = "Diego Enrique Islas Cuervo"
+#     xpeowner = "diegoenrique.islas@xpertal.com"
+#     proyecto = "terraform"
+#     ambiente = "dev"
+#   }
+#
+#   providers = {
+#     azurerm = azurerm.xpe_shared_poc
+#   }
+# }
+#
+# module "resource_group_spoke" {
+#   source = "./modules/resource_group"
+#
+#   resource_group_name = "xpeterraformpoc-spoke-rg"
+#   location            = "southcentralus"
+#   tags = {
+#     UDN      = "Xpertal"
+#     OWNER    = "Diego Enrique Islas Cuervo"
+#     xpeowner = "diegoenrique.islas@xpertal.com"
+#     proyecto = "terraform"
+#     ambiente = "dev"
+#   }
+#   providers = {
+#     azurerm = azurerm.xpe_shared_poc
+#   }
+# }
 
 ##############################################
 
@@ -223,170 +222,185 @@ module "resource_group_spoke" {
 
 # =========================
 
-module "vnet_hub" {
-  source              = "./modules/vnets"
-  vnet_name           = "xpeterraformpoc-hub-vnet"
-  location            = module.resource_group_hub.resource_group_location
-  resource_group_name = module.resource_group_hub.resource_group_name
-  address_space       = ["10.100.0.0/16"]
+# module "vnet_hub" {
+#   source              = "./modules/vnets"
+#   vnet_name           = "xpeterraformpoc-hub-vnet"
+#   location            = module.resource_group_hub.resource_group_location
+#   resource_group_name = module.resource_group_hub.resource_group_name
+#   address_space       = ["10.100.0.0/16"]
+#
+#     subnets = [
+#     {
+#       name           = "functions"
+#       address_prefix = "10.100.1.0/24"
+#       delegation = {
+#         name = "delegate-functions"
+#         service_delegation = {
+#           name    = "Microsoft.Web/serverFarms"
+#           actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+#         }
+#       }
+#     },
+#
+#     {
+#       name           = "prueba"
+#       address_prefix = "10.100.2.0/24"
+#     }
+#
+#   ]
+#
+#   peerings = [
+#     {
+#       name               = "hub-to-spoke"
+#       remote_vnet_id     = module.vnet_spoke.vnet_id
+#       remote_vnet_name   = module.vnet_spoke.vnet_name
+#       remote_rg_name     = module.resource_group_spoke.resource_group_name
+#
+#       local = {
+#         allow_virtual_network_access = true
+#         allow_forwarded_traffic      = true
+#         allow_gateway_transit        = false
+#         use_remote_gateways          = false
+#       }
+#
+#       remote = {
+#         allow_virtual_network_access = true
+#         allow_forwarded_traffic      = true
+#         allow_gateway_transit        = false
+#         use_remote_gateways          = false
+#       }
+#     }
+#   ]
+#
+#   tags = {
+#     UDN      = "Xpertal"
+#     OWNER    = "Diego Islas"
+#     xpeowner = "diegoenrique.islas@xpertal.com"
+#     proyecto = "terraform"
+#     ambiente = "qa"
+#   }
+#
+#   providers = {
+#     azurerm = azurerm.xpe_shared_poc
+#   }
+# }
+#
+# module "vnet_spoke" {
+#   source              = "./modules/vnets"
+#   vnet_name           = "xpeterraformpoc-spoke-vnet"
+#   location            = module.resource_group_spoke.resource_group_location
+#   resource_group_name = module.resource_group_spoke.resource_group_name
+#   address_space       = ["20.0.0.0/16"]
+#
+#     subnets = [
+#     {
+#       name           = "app"
+#       address_prefix = "20.0.10.0/24"
+#     },
+#
+#     {
+#       name           = "db"
+#       address_prefix = "20.0.20.0/24"
+#     }
+#
+#     ]
+#
+# tags = {
+#     UDN      = "Xpertal"
+#     OWNER    = "Diego Islas"
+#     xpeowner = "diegoenrique.islas@xpertal.com"
+#     proyecto = "terraform"
+#     ambiente = "qa"
+#     }
+#
+#     providers = {
+#         azurerm = azurerm.xpe_shared_poc
+#     }
+#
+# }
+#
+# module "network_security_group_hub" {
+#   source              = "./modules/network_security_group"
+#   nsg_name            = "xpeterraformpoc-hub-nsg"
+#   resource_group_name = module.resource_group_hub.resource_group_name
+#   location            = module.resource_group_hub.resource_group_location
+#
+#   security_rules = [
+#     {
+#       name                       = "Allow-HTTP"
+#       priority                   = 100
+#       direction                  = "Inbound"
+#       access                     = "Allow"
+#       protocol                   = "Tcp"
+#       source_port_range          = "*"
+#       destination_port_range     = "80"
+#       source_address_prefix      = "*"
+#       destination_address_prefix = "*"
+#     },
+#     {
+#       name                       = "Allow-HTTPS"
+#       priority                   = 110
+#       direction                  = "Inbound"
+#       access                     = "Allow"
+#       protocol                   = "Tcp"
+#       source_port_range          = "*"
+#       destination_port_range     = "443"
+#       source_address_prefix      = "*"
+#       destination_address_prefix = "*"
+#     },
+#
+#     {
+#         name                       = "Allow-AzureLoadBalancer"
+#         priority                   = 120
+#         direction                  = "Inbound"
+#         access                     = "Allow"
+#         protocol                   = "*"
+#         source_port_range          = "*"
+#         destination_port_range     = "*"
+#         source_address_prefix      = "AzureLoadBalancer"
+#         destination_address_prefix = "*"
+#     }
+#     ## Aqui cierro reglas
+#   ]
+#
+#   tags = {
+#     UDN      = "Xpertal"
+#     OWNER    = "Diego Islas"
+#     xpeowner = "diegoenrique.islas@xpertal.com"
+#     proyecto = "terraform"
+#     ambiente = "qa"
+#     }
+#
+#     providers = {
+#         azurerm = azurerm.xpe_shared_poc
+#     }
+# }
+#
+#
+# resource "azurerm_subnet_network_security_group_association" "prueba_assoc" {
+#   provider                  = azurerm.xpe_shared_poc
+#   subnet_id                 = module.vnet_hub.subnet_ids["prueba"]
+#   network_security_group_id = module.network_security_group_hub.nsg_id
+# }
 
-    subnets = [
-    {
-      name           = "functions"
-      address_prefix = "10.100.1.0/24"
-      delegation = {
-        name = "delegate-functions"
-        service_delegation = {
-          name    = "Microsoft.Web/serverFarms"
-          actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-        }
+module "resource_group_import" {
+  source = "./modules/resource-group"
+
+  # Usa keys ESTABLES (la key se utiliza en el import)
+  rgs = {
+    "terraform-import-test" = {
+      name     = "terraform-import-test"
+      location = "southcentralus"
+      tags = {
+        UDN      = "Xpertal"
+        OWNER    = "Diego Enrique Islas Cuervo"
+        xpeowner = "diegoenrique.islas@xpertal.com"
+        proyecto = "terraform"
+        ambiente = "dev"
       }
-    },
-
-    {
-      name           = "prueba"
-      address_prefix = "10.100.2.0/24"
     }
-
-  ]
-
-  peerings = [
-    {
-      name               = "hub-to-spoke"
-      remote_vnet_id     = module.vnet_spoke.vnet_id
-      remote_vnet_name   = module.vnet_spoke.vnet_name
-      remote_rg_name     = module.resource_group_spoke.resource_group_name
-
-      local = {
-        allow_virtual_network_access = true
-        allow_forwarded_traffic      = true
-        allow_gateway_transit        = false
-        use_remote_gateways          = false
-      }
-
-      remote = {
-        allow_virtual_network_access = true
-        allow_forwarded_traffic      = true
-        allow_gateway_transit        = false
-        use_remote_gateways          = false
-      }
-    }
-  ]
-
-  tags = {
-    UDN      = "Xpertal"
-    OWNER    = "Diego Islas"
-    xpeowner = "diegoenrique.islas@xpertal.com"
-    proyecto = "terraform"
-    ambiente = "qa"
   }
 
-  providers = {
-    azurerm = azurerm.xpe_shared_poc
-  }
+  # Si usas provider alias para esta suscripción:
+  # providers = { azurerm = azurerm.xpe_shared_poc }
 }
-
-module "vnet_spoke" {
-  source              = "./modules/vnets"
-  vnet_name           = "xpeterraformpoc-spoke-vnet"
-  location            = module.resource_group_spoke.resource_group_location
-  resource_group_name = module.resource_group_spoke.resource_group_name
-  address_space       = ["20.0.0.0/16"]
-
-    subnets = [
-    {
-      name           = "app"
-      address_prefix = "20.0.10.0/24"
-    },
-
-    {
-      name           = "db"
-      address_prefix = "20.0.20.0/24"
-    }
-
-    ]
-
-tags = {
-    UDN      = "Xpertal"
-    OWNER    = "Diego Islas"
-    xpeowner = "diegoenrique.islas@xpertal.com"
-    proyecto = "terraform"
-    ambiente = "qa"
-    }
-
-    providers = {
-        azurerm = azurerm.xpe_shared_poc
-    }
-
-}
-
-module "network_security_group_hub" {
-  source              = "./modules/network_security_group"
-  nsg_name            = "xpeterraformpoc-hub-nsg"
-  resource_group_name = module.resource_group_hub.resource_group_name
-  location            = module.resource_group_hub.resource_group_location
-
-  security_rules = [
-    {
-      name                       = "Allow-HTTP"
-      priority                   = 100
-      direction                  = "Inbound"
-      access                     = "Allow"
-      protocol                   = "Tcp"
-      source_port_range          = "*"
-      destination_port_range     = "80"
-      source_address_prefix      = "*"
-      destination_address_prefix = "*"
-    },
-    {
-      name                       = "Allow-HTTPS"
-      priority                   = 110
-      direction                  = "Inbound"
-      access                     = "Allow"
-      protocol                   = "Tcp"
-      source_port_range          = "*"
-      destination_port_range     = "443"
-      source_address_prefix      = "*"
-      destination_address_prefix = "*"
-    },
-
-    {
-        name                       = "Allow-AzureLoadBalancer"
-        priority                   = 120
-        direction                  = "Inbound"
-        access                     = "Allow"
-        protocol                   = "*"
-        source_port_range          = "*"
-        destination_port_range     = "*"
-        source_address_prefix      = "AzureLoadBalancer"
-        destination_address_prefix = "*"
-    }
-    ## Aqui cierro reglas
-  ]
-
-  tags = {
-    UDN      = "Xpertal"
-    OWNER    = "Diego Islas"
-    xpeowner = "diegoenrique.islas@xpertal.com"
-    proyecto = "terraform"
-    ambiente = "qa"
-    }
-
-    providers = {
-        azurerm = azurerm.xpe_shared_poc
-    }
-}
-
-
-resource "azurerm_subnet_network_security_group_association" "prueba_assoc" {
-  provider                  = azurerm.xpe_shared_poc
-  subnet_id                 = module.vnet_hub.subnet_ids["prueba"]
-  network_security_group_id = module.network_security_group_hub.nsg_id
-}
-
-
-
-
-
-
-
