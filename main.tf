@@ -383,19 +383,26 @@
 #   network_security_group_id = module.network_security_group_hub.nsg_id
 # }
 
-module "resource_group_import" {
-  source = "./modules/resource_group"
+module "resource_group" {
+  source = "./modules/resource-group"
 
-  resource_group_name = "terraform-import-test"
-  location            = "southcentralus"
-  tags = {
-    UDN      = "Xpertal"
-    OWNER    = "Diego Enrique Islas Cuervo"
-    xpeowner = "diegoenrique.islas@xpertal.com"
-    proyecto = "terraform"
-    ambiente = "dev"
+  # Si este RG está en tu suscripción con alias, descomenta:
+  # providers = { azurerm = azurerm.xpe_shared_poc }
+
+  rgs = {
+    terraform-import-test = {
+      name     = "terraform-import-test"
+      location = "southcentralus"
+      tags = {
+        UDN       = "Xpertal"
+        OWNER     = "Diego Enrique Islas Cuervo"
+        xpeowner  = "diegoenrique.islas@xpertal.com"
+        proyecto  = "terraform"
+        ambiente  = "dev"
+      }
+    }
   }
-
+  
   providers = {
     azurerm = azurerm.xpe_shared_poc
   }
