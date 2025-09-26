@@ -517,6 +517,70 @@ module "vnet_simple" {
         azurerm = azurerm.xpe_shared_poc
     }
 }
+module "network_security_group_hub" {
+    source              = "./modules/network_security_group"
+    nsg_name            = "xpeterraformpoc-hub-nsg"
+    resource_group_name = module.resource_group.resource_group_name
+    location            = module.resource_group.resource_group_location
+
+    security_rules = [
+        {
+            name                       = "Allow-HTTP"
+            priority                   = 100
+            direction                  = "Inbound"
+            access                     = "Allow"
+            protocol                   = "Tcp"
+            source_port_range          = "*"
+            destination_port_range     = "80"
+            source_address_prefix      = "*"
+            destination_address_prefix = "*"
+        },
+        {
+            name                       = "Allow-HTTPS"
+            priority                   = 110
+            direction                  = "Inbound"
+            access                     = "Allow"
+            protocol                   = "Tcp"
+            source_port_range          = "*"
+            destination_port_range     = "443"
+            source_address_prefix      = "*"
+            destination_address_prefix = "*"
+        },
+
+        {
+                name                       = "Allow-AzureLoadBalancer"
+                priority                   = 120
+                direction                  = "Inbound"
+                access                     = "Allow"
+                protocol                   = "*"
+                source_port_range          = "*"
+                destination_port_range     = "*"
+                source_address_prefix      = "AzureLoadBalancer"
+                destination_address_prefix = "*"
+        }
+        ## Aqui cierro reglas
+    ]
+
+    tags = {
+        UDN      = "Xpertal"
+        OWNER    = "Diego Islas"
+        xpeowner = "diegoenrique.islas@xpertal.com"
+        proyecto = "terraform"
+        ambiente = "qa"
+        }
+
+        providers = {
+                azurerm = azurerm.xpe_shared_poc
+        }
+}
+
+
+resource "azurerm_subnet_network_security_group_association" "prueba_assoc" {
+    provider                  = azurerm.xpe_shared_poc
+    subnet_id                 = module.vnet_simple.subnet_ids["servidores"]
+    network_security_group_id = module.network_security_group_hub.nsg_id
+}
+
 
 
 

@@ -5,3 +5,7 @@ output "resource_group_name" {
 output "vnet_id" {
   value = module.vnet_simple.vnet_id
 }
+
+output "nsg_id" {
+  value = module.network_security_group_hub.nsg_id
+}
