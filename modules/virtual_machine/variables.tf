@@ -19,8 +19,9 @@ variable "vm_size" {
 }
 
 variable "os_type" {
-  description = "Sistema operativo: \"linux\" o \"windows\"."
+  description = "Sistema operativo: \"linux\" o \"windows\". Por defecto se despliega Windows."
   type        = string
+  default     = "windows"
 
   validation {
     condition     = contains(["linux", "windows"], lower(var.os_type))
