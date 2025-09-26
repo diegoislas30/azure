@@ -490,8 +490,8 @@ module "resource_group" {
 module "vnet_simple" {
     source              = "./modules/vnets"
     vnet_name           = "vnet-terraform-import"
-    location            = module.vnet_simple.resource_group_location
-    resource_group_name = module.vnet_simple.resource_group_name
+    location            = module.resource_group.resource_group_location
+    resource_group_name = module.resource_group.resource_group_name
     address_space       = ["10.10.0.0/16"]
 
     subnets = [
