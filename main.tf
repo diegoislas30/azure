@@ -385,21 +385,15 @@
 
 module "resource_group" {
   source    = "./modules/resource_group"
-  
 
-  rgs = {
-    terraform-import-test = {
-      name     = "terraform-import-test"
-      location = "southcentralus"
-      tags = {
-        UDN      = "Xpertal"
-        OWNER    = "Diego Enrique Islas Cuervo"
-        xpeowner = "diegoenrique.islas@xpertal.com"
-        proyecto = "terraform"
-        ambiente = "dev"
-      }
-    }
+  resource_group_name = "terraform-import-test"
+  location = "sotuthcentralus"  
+  tags = {
+    UDN      = "Xpertal"
+    OWNER    = "Diego Enrique Islas Cuervo"
+    xpeowner = "diegoenrique.islas@xpertal.com"
+    proyecto = "terraform"
+    ambiente = "dev"
   }
 }
-
 
