@@ -384,23 +384,21 @@
 # }
 
 module "resource_group_import" {
-  source = "./modules/resource-group"
+  source = "./modules/resource_group"
 
-  # Usa keys ESTABLES (la key se utiliza en el import)
-  rgs = {
-    "terraform-import-test" = {
-      name     = "terraform-import-test"
-      location = "southcentralus"
-      tags = {
-        UDN      = "Xpertal"
-        OWNER    = "Diego Enrique Islas Cuervo"
-        xpeowner = "diegoenrique.islas@xpertal.com"
-        proyecto = "terraform"
-        ambiente = "dev"
-      }
-    }
+  resource_group_name = "terraform-import-test"
+  location            = "southcentralus"
+  tags = {
+    UDN      = "Xpertal"
+    OWNER    = "Diego Enrique Islas Cuervo"
+    xpeowner = "diegoenrique.islas@xpertal.com"
+    proyecto = "terraform"
+    ambiente = "dev"
   }
 
-  # Si usas provider alias para esta suscripción:
-  # providers = { azurerm = azurerm.xpe_shared_poc }
+  providers = {
+    azurerm = azurerm.xpe_shared_poc
+  }
+
 }
+
