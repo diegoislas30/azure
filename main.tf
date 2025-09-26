@@ -383,7 +383,7 @@
 #   network_security_group_id = module.network_security_group_hub.nsg_id
 # }
 
-module "resource_group" {
+module "resource_group_import" {
   source = "./modules/resource-group"
 
   # Usa keys ESTABLES (la key se utiliza en el import)
@@ -392,9 +392,11 @@ module "resource_group" {
       name     = "terraform-import-test"
       location = "southcentralus"
       tags = {
-        OWNER     = "Diego Enrique Islas Cuervo"
-        proyecto  = "terraform"
-        ambiente  = "dev"
+        UDN      = "Xpertal"
+        OWNER    = "Diego Enrique Islas Cuervo"
+        xpeowner = "diegoenrique.islas@xpertal.com"
+        proyecto = "terraform"
+        ambiente = "dev"
       }
     }
   }
