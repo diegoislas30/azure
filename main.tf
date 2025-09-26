@@ -387,7 +387,7 @@ module "resource_group" {
   source    = "./modules/resource_group"
 
   resource_group_name = "terraform-import-test"
-  location = "sotuthcentralus"  
+  location = "southcentralus"  
   tags = {
     UDN      = "Xpertal"
     OWNER    = "Diego Enrique Islas Cuervo"
