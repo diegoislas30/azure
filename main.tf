@@ -500,7 +500,7 @@ module "vnet_simple" {
             address_prefix = "10.10.1.0/24"
         },
         {
-            name           = "bases de datos"
+            name           = "bases_de_datos"
             address_prefix = "10.10.2.0/24"
         }
     ]
@@ -517,6 +517,8 @@ module "vnet_simple" {
         azurerm = azurerm.xpe_shared_poc
     }
 }
+
+
 
 
 
