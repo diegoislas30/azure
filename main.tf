@@ -437,7 +437,8 @@
 #   resource_group_name = module.resource_group_xpeterraformpoc2.resource_group_name
 #   location            = module.resource_group_xpeterraformpoc2.resource_group_location
 #   vm_size             = "Standard_DS2_v2"
-#   os_type             = "linux"
+#   # os_type es opcional; por defecto se aprovisiona Windows.
+#   # os_type             = "windows"
 #   admin_username      = "azureuser"
 #   admin_password      = "C0mpleja!1234"
 #
