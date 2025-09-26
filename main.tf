@@ -384,28 +384,22 @@
 # }
 
 module "resource_group" {
-  source = "./modules/resource-group"
-
-  # Si este RG está en tu suscripción con alias, descomenta:
-  # providers = { azurerm = azurerm.xpe_shared_poc }
+  source    = "./modules/resource_group"
+  
 
   rgs = {
     terraform-import-test = {
       name     = "terraform-import-test"
       location = "southcentralus"
       tags = {
-        UDN       = "Xpertal"
-        OWNER     = "Diego Enrique Islas Cuervo"
-        xpeowner  = "diegoenrique.islas@xpertal.com"
-        proyecto  = "terraform"
-        ambiente  = "dev"
+        UDN      = "Xpertal"
+        OWNER    = "Diego Enrique Islas Cuervo"
+        xpeowner = "diegoenrique.islas@xpertal.com"
+        proyecto = "terraform"
+        ambiente = "dev"
       }
     }
   }
-  
-  providers = {
-    azurerm = azurerm.xpe_shared_poc
-  }
-
 }
+
 
