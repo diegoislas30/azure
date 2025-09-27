@@ -614,15 +614,13 @@ module "virtual_machine_web" {
 
   data_disks = [
     {
-      name                 = "vm-import-01-data01"
       lun                  = 0
       caching              = "ReadOnly"
-      storage_account_type = "Standard_LRS"
+      storage_account_type = "StandardSSD_LRS"
       disk_size_gb         = 30
-    }   
-
-    
+    }
   ]
+
 
   # Opcional: ajusta los parámetros de Trusted Launch si necesitas valores distintos.
   security_type       = "TrustedLaunch"
