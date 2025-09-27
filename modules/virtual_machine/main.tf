@@ -41,16 +41,17 @@ resource "azurerm_linux_virtual_machine" "this" {
     disk_size_gb         = var.os_disk_size_gb
   }
 
-  dynamic "data_disk" {
-    for_each = var.data_disks
-    content {
-      name                 = "${var.vm_name}-datadisk-${data_disk.value.lun}"
-      lun                  = data_disk.value.lun
-      disk_size_gb         = data_disk.value.size_gb
-      caching              = coalesce(try(data_disk.value.caching, null), "ReadOnly")
-      storage_account_type = coalesce(try(data_disk.value.storage_account_type, null), "StandardSSD_LRS")
-    }
+  dynamic "storage_data_disk" {
+  for_each = var.data_disks
+  content {
+    name               = "${var.vm_name}-datadisk-${storage_data_disk.value.lun}"
+    lun                = storage_data_disk.value.lun
+    caching            = coalesce(try(storage_data_disk.value.caching, null), "ReadOnly")
+    disk_size_gb       = storage_data_disk.value.size_gb
+    managed_disk_type  = coalesce(try(storage_data_disk.value.storage_account_type, null), "StandardSSD_LRS")
   }
+}
+
 
   boot_diagnostics {
     storage_account_uri = var.boot_diagnostics_storage_uri
@@ -81,16 +82,17 @@ resource "azurerm_windows_virtual_machine" "this" {
     disk_size_gb         = var.os_disk_size_gb
   }
 
-  dynamic "data_disk" {
-    for_each = var.data_disks
-    content {
-      name                 = "${var.vm_name}-datadisk-${data_disk.value.lun}"
-      lun                  = data_disk.value.lun
-      disk_size_gb         = data_disk.value.size_gb
-      caching              = coalesce(try(data_disk.value.caching, null), "ReadOnly")
-      storage_account_type = coalesce(try(data_disk.value.storage_account_type, null), "StandardSSD_LRS")
-    }
+  dynamic "storage_data_disk" {
+  for_each = var.data_disks
+  content {
+    name               = "${var.vm_name}-datadisk-${storage_data_disk.value.lun}"
+    lun                = storage_data_disk.value.lun
+    caching            = coalesce(try(storage_data_disk.value.caching, null), "ReadOnly")
+    disk_size_gb       = storage_data_disk.value.size_gb
+    managed_disk_type  = coalesce(try(storage_data_disk.value.storage_account_type, null), "StandardSSD_LRS")
   }
+}
+
 
   boot_diagnostics {
     storage_account_uri = var.boot_diagnostics_storage_uri
