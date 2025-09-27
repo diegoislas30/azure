@@ -96,5 +96,5 @@ resource "azurerm_windows_virtual_machine" "this" {
     storage_account_uri = var.boot_diagnostics_storage_uri
   }
 
-  tags = var.tags
+  tags = tomap(variable.tags)
 }
