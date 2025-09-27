@@ -1,129 +1,127 @@
 variable "vm_name" {
-  description = "Nombre de la máquina virtual."
+  description = "Nombre de la máquina virtual (único dentro del RG)."
   type        = string
 }
 
 variable "resource_group_name" {
-  description = "Resource Group donde se creará la VM."
+  description = "Nombre del Resource Group."
   type        = string
 }
 
 variable "location" {
-  description = "Región/Location de la VM."
+  description = "Región de Azure (ej. southcentralus)."
   type        = string
 }
 
-variable "vm_size" {
-  description = "SKU/tamaño de la VM (por ejemplo, Standard_DS2_v2)."
+variable "subnet_id" {
+  description = "ID de la Subnet donde nacerá la NIC (sin IP pública)."
   type        = string
 }
 
 variable "os_type" {
-  description = "Sistema operativo: \"linux\" o \"windows\". Por defecto se despliega Windows."
+  description = "Tipo de SO: 'linux' o 'windows'."
   type        = string
-  default     = "windows"
-
   validation {
     condition     = contains(["linux", "windows"], lower(var.os_type))
-    error_message = "os_type debe ser \"linux\" o \"windows\"."
+    error_message = "os_type debe ser 'linux' o 'windows'."
   }
+}
+
+variable "vm_size" {
+  description = "Tamaño de la VM. Default: el más pequeño recomendado."
+  type        = string
+  default     = "Standard_B1s"
+}
+
+variable "zone" {
+  description = "Availability Zone (1,2,3). Dejar null para no usar AZ."
+  type        = string
+  default     = null
+}
+
+variable "security_type" {
+  description = "Tipo de seguridad: TrustedLaunch (default) o Standard."
+  type        = string
+  default     = "TrustedLaunch"
+  validation {
+    condition     = contains(["trustedlaunch", "standard"], lower(var.security_type))
+    error_message = "security_type debe ser 'TrustedLaunch' o 'Standard'."
+  }
+}
+
+variable "source_image_id" {
+  description = "ARM ID de la imagen (Shared Image Version o Managed Image). Ej: /subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.Compute/galleries/<gallery>/images/<image>/versions/<version>"
+  type        = string
 }
 
 variable "admin_username" {
   description = "Usuario administrador."
   type        = string
+  default     = "spyderadmin"
 }
 
 variable "admin_password" {
-  description = "Contraseña del administrador (obligatoria)."
+  description = "Contraseña administrador (cumplir complejidad de Azure)."
   type        = string
+  sensitive   = true
 }
 
-variable "subnet_id" {
-  description = "ID de la subred donde se conectará la NIC."
+# Disco del sistema (OS Disk)
+variable "os_disk_size_gb" {
+  description = "Tamaño del OS Disk en GB. Default 128 GB."
+  type        = number
+  default     = 128
+}
+
+variable "os_disk_storage_account_type" {
+  description = "SKU del OS Disk: StandardSSD_LRS (default), Premium_LRS, etc."
   type        = string
+  default     = "StandardSSD_LRS"
 }
 
-variable "private_ip_address" {
-  description = "IP privada estática (opcional)."
-  type        = string
-  default     = null
-}
-
-variable "private_ip_address_allocation" {
-  description = "Modo de asignación cuando private_ip_address es null (Dynamic/Static)."
-  type        = string
-  default     = "Dynamic"
-}
-
-variable "enable_public_ip" {
-  description = "Si true, crea y asocia una IP pública. Por defecto las VMs nacen sin IP pública."
-  type        = bool
-  default     = false
-}
-
-variable "public_ip_sku" {
-  description = "SKU de la IP pública."
-  type        = string
-  default     = "Standard"
-}
-
-variable "public_ip_allocation_method" {
-  description = "Asignación de la IP pública (Static o Dynamic)."
-  type        = string
-  default     = "Static"
-}
-
-variable "public_ip_domain_name_label" {
-  description = "Etiqueta DNS para la IP pública (opcional)."
+variable "os_disk_caching" {
+  description = "Caching del OS Disk: None, ReadOnly, ReadWrite. Default ReadWrite."
   type        = string
   default     = null
 }
 
-variable "network_security_group_id" {
-  description = "ID de un NSG para asociar a la NIC (opcional)."
-  type        = string
-  default     = null
-}
-
-variable "source_image_id" {
-  description = "ID de la imagen en Azure Compute Gallery."
-  type        = string
-}
-
-variable "os_disk" {
-  description = "Configuración del disco del sistema operativo."
-  type = object({
-    caching              = string
-    storage_account_type = string
-    disk_size_gb         = number
-  })
-  default = {
-    caching              = "ReadWrite"
-    storage_account_type = "Premium_LRS"
-    disk_size_gb         = 128
-  }
-}
-
-variable "tags" {
-  description = "Etiquetas estándar del proyecto."
-  type = object({
-    UDN      = string
-    OWNER    = string
-    xpeowner = string
-    proyecto = string
-    ambiente = string
-  })
-}
-
+# Data Disks
 variable "data_disks" {
-  description = "Lista de discos de datos adicionales."
+  description = <<EOT
+Lista de data disks a adjuntar. Cada objeto:
+{
+  lun                  = number     # requerido (0..63, no repetir)
+  size_gb              = number     # requerido
+  caching              = optional(string, "ReadOnly")  # None | ReadOnly | ReadWrite
+  storage_account_type = optional(string, "StandardSSD_LRS")
+}
+EOT
   type = list(object({
     lun                  = number
-    caching              = string
-    storage_account_type = string
-    disk_size_gb         = number
+    size_gb              = number
+    caching              = optional(string)
+    storage_account_type = optional(string)
   }))
   default = []
 }
 
+# Redes
+variable "enable_accelerated_networking" {
+  description = "Habilita Accelerated Networking en la NIC (si el tamaño lo soporta)."
+  type        = bool
+  default     = false
+}
+
+# Boot diagnostics (opcional)
+variable "boot_diagnostics_storage_uri" {
+  description = "URI del Storage Account para boot diagnostics (opcional)."
+  type        = string
+  default     = null
+}
+
+# Tags
+variable "tags" {
+  description = "Mapa de tags para NIC y VM."
+  type        = map(string)
+  default     = {}
+}
