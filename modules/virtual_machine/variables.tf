@@ -115,3 +115,15 @@ variable "tags" {
     ambiente = string
   })
 }
+
+variable "data_disks" {
+  description = "Lista de discos de datos adicionales."
+  type = list(object({
+    lun                  = number
+    caching              = string
+    storage_account_type = string
+    disk_size_gb         = number
+  }))
+  default = []
+}
+

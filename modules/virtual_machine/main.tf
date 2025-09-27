@@ -95,6 +95,20 @@ resource "azurerm_windows_virtual_machine" "this" {
     disk_size_gb         = var.os_disk.disk_size_gb
   }
 
+  ## Agrega el apartado de los data disks si se han definido con for_each para asignar múltiples discos
+  dynamic "data_disk" {
+    for_each = var.data_disks
+    content {
+      lun                  = data_disk.value.lun
+      caching              = data_disk.value.caching
+      storage_account_type = data_disk.value.storage_account_type
+      disk_size_gb         = data_disk.value.disk_size_gb
+      create_option        = "Empty"
+    }
+  }
+  
+
+
   source_image_id = var.source_image_id
 
   secure_boot_enabled = true

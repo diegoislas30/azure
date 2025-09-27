@@ -581,8 +581,62 @@ resource "azurerm_subnet_network_security_group_association" "prueba_assoc" {
     network_security_group_id = module.network_security_group_hub.nsg_id
 }
 
+module "virtual_machine_web" {
+    source = "./modules/virtual_machine"
+
+    vm_name             = "terraform-import-vm-01"
+    resource_group_name = module.resource_group.resource_group_name
+    location            = module.resource_group.resource_group_location
+    vm_size             = "Standard_DS2_v2"
+    # os_type es opcional; por defecto se aprovisiona Windows.
+    # os_type             = "windows"
+    admin_username      = "azureuser"
+    admin_password      = "C0mpleja!1234"
+
+    subnet_id = module.vnet_simple.subnet_ids["servidores"]
+
+    # Las VMs nacen sin IP pública; habilita esta bandera solo si es necesario.
+    enable_public_ip = false
+
+    network_security_group_id = module.network_security_group_hub.nsg_id
+
+    source_image_id = "/subscriptions/<SUB_SIG>/resourceGroups/<RG_SIG>/providers/Microsoft.Compute/galleries/<GALLERY>/images/<IMAGE>/versions/<VERSION>"
+
+    os_disk = {
+        caching              = "ReadWrite"
+        storage_account_type = "Standard_LRS"
+        disk_size_gb         = 120
+    }
+    
+    
+    data_disks = [
+        {
+            lun                  = 0
+            caching              = "ReadWrite"
+            storage_account_type = "Standard_LRS"
+            disk_size_gb         = 32
+        },
+        {
+            lun                  = 1
+            caching              = "ReadOnly"
+            storage_account_type = "Standard_LRS"
+            disk_size_gb         = 64
+        }
+    ]
+    tags = {
+        UDN      = "Xpertal"
+        OWNER    = "Diego Islas"
+        xpeowner = "diegoenrique.islas@xpertal.com"
+        proyecto = "terraform"
+        ambiente = "dev"
+    }
+
+    providers = {
+        azurerm = azurerm.xpe_shared_poc
+    }
+}
 
 
 
 
-
+    
