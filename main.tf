@@ -620,8 +620,8 @@ module "virtual_machine_web" {
   ]
 
   security_type   = "Standard"          # <-- mayúsculas
-  source_image_id = "/subscriptions/9442ead9-7f87-4f7a-b248-53e511abefd7/resourceGroups/rg-ImageTemplate_Xpertal/providers/Microsoft.Compute/galleries/XpertalSharedImageWindows/images/WindowsTest/versions/1.0.3"
-
+  source_image_id = "/subscriptions/9442ead9-7f87-4f7a-b248-53e511abefd7/resourceGroups/rg-ImageTemplate_Xpertal/providers/Microsoft.Compute/galleries/XpertalSharedImageWindows/images/Windows_2019"
+  
   tags = {
     UDN      = "Xpertal"
     OWNER    = "Equipo Infra"
