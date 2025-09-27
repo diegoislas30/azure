@@ -83,9 +83,7 @@ resource "azurerm_linux_virtual_machine" "this" {
 
   source_image_id = var.source_image_id
 
-  secure_boot_enabled = var.secure_boot_enabled
-  vtpm_enabled        = var.vtpm_enabled
-  security_type       = var.security_type
+
 
   tags = tomap(var.tags)
 
