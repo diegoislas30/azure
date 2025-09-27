@@ -1,6 +1,8 @@
 locals {
-  is_trusted_launch       = lower(var.security_type) == "trustedlaunch"
-  os_disk_caching_default = coalesce(var.os_disk_caching, "ReadWrite")
+  is_trusted_launch        = lower(var.security_type) == "trustedlaunch"
+  os_disk_caching_default  = coalesce(var.os_disk_caching, "ReadWrite")
+  # Mapear data_disks por LUN para usar en for_each y leer propiedades (caching, sku, etc.)
+  data_disks_by_lun = { for d in var.data_disks : d.lun => d }
 }
 
 # NIC (sin IP pública, sin NSG en la NIC)
@@ -33,10 +35,9 @@ resource "azurerm_linux_virtual_machine" "this" {
   network_interface_ids           = [azurerm_network_interface.this.id]
   zone                            = var.zone
 
-  # Imagen (SIG/Managed Image) por ID
   source_image_id = var.source_image_id
 
-  # Seguridad (Trusted Launch por defecto)
+  
   vtpm_enabled        = local.is_trusted_launch
   secure_boot_enabled = local.is_trusted_launch
 
@@ -45,18 +46,6 @@ resource "azurerm_linux_virtual_machine" "this" {
     caching              = local.os_disk_caching_default
     storage_account_type = var.os_disk_storage_account_type
     disk_size_gb         = var.os_disk_size_gb
-  }
-
-  # Data disks
-  dynamic "storage_data_disk" {
-    for_each = var.data_disks
-    content {
-      name              = "${var.vm_name}-datadisk-${storage_data_disk.value.lun}"
-      lun               = storage_data_disk.value.lun
-      caching           = coalesce(try(storage_data_disk.value.caching, null), "ReadOnly")
-      disk_size_gb      = storage_data_disk.value.size_gb
-      managed_disk_type = coalesce(try(storage_data_disk.value.storage_account_type, null), "StandardSSD_LRS")
-    }
   }
 
   # Boot diagnostics (solo si se especifica URI)
@@ -72,19 +61,20 @@ resource "azurerm_linux_virtual_machine" "this" {
 
 # ===================== WINDOWS =====================
 resource "azurerm_windows_virtual_machine" "this" {
-  count               = lower(var.os_type) == "windows" ? 1 : 0
-  name                = var.vm_name
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  size                = var.vm_size
-  admin_username      = var.admin_username
-  admin_password      = var.admin_password
-  provision_vm_agent  = true
+  count                 = lower(var.os_type) == "windows" ? 1 : 0
+  name                  = var.vm_name
+  resource_group_name   = var.resource_group_name
+  location              = var.location
+  size                  = var.vm_size
+  admin_username        = var.admin_username
+  admin_password        = var.admin_password
+  provision_vm_agent    = true
   network_interface_ids = [azurerm_network_interface.this.id]
   zone                  = var.zone
 
   source_image_id = var.source_image_id
 
+  
   vtpm_enabled        = local.is_trusted_launch
   secure_boot_enabled = local.is_trusted_launch
 
@@ -95,17 +85,6 @@ resource "azurerm_windows_virtual_machine" "this" {
     disk_size_gb         = var.os_disk_size_gb
   }
 
-  dynamic "storage_data_disk" {
-    for_each = var.data_disks
-    content {
-      name              = "${var.vm_name}-datadisk-${storage_data_disk.value.lun}"
-      lun               = storage_data_disk.value.lun
-      caching           = coalesce(try(storage_data_disk.value.caching, null), "ReadOnly")
-      disk_size_gb      = storage_data_disk.value.size_gb
-      managed_disk_type = coalesce(try(storage_data_disk.value.storage_account_type, null), "StandardSSD_LRS")
-    }
-  }
-
   dynamic "boot_diagnostics" {
     for_each = var.boot_diagnostics_storage_uri == null ? [] : [1]
     content {
@@ -114,4 +93,38 @@ resource "azurerm_windows_virtual_machine" "this" {
   }
 
   tags = var.tags
+}
+
+# ===================== DATA DISKS (Managed Disks + Attachments) =====================
+
+# Crear los Managed Disks vacíos según tu lista (uno por LUN)
+resource "azurerm_managed_disk" "data" {
+  for_each            = local.data_disks_by_lun
+  name                = "${var.vm_name}-datadisk-${each.key}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+
+  storage_account_type = coalesce(try(each.value.storage_account_type, null), "StandardSSD_LRS")
+  create_option        = "Empty"
+  disk_size_gb         = each.value.size_gb
+
+  tags = var.tags
+}
+
+# Adjuntar a VM Linux (si aplica)
+resource "azurerm_virtual_machine_data_disk_attachment" "linux" {
+  for_each           = lower(var.os_type) == "linux" ? azurerm_managed_disk.data : {}
+  managed_disk_id    = each.value.id
+  virtual_machine_id = azurerm_linux_virtual_machine.this[0].id
+  lun                = tonumber(split("-", each.value.name)[length(split("-", each.value.name)) - 1]) # o simplemente each.key
+  caching            = coalesce(try(local.data_disks_by_lun[each.key].caching, null), "ReadOnly")
+}
+
+# Adjuntar a VM Windows (si aplica)
+resource "azurerm_virtual_machine_data_disk_attachment" "windows" {
+  for_each           = lower(var.os_type) == "windows" ? azurerm_managed_disk.data : {}
+  managed_disk_id    = each.value.id
+  virtual_machine_id = azurerm_windows_virtual_machine.this[0].id
+  lun                = tonumber(split("-", each.value.name)[length(split("-", each.value.name)) - 1]) # o simplemente each.key
+  caching            = coalesce(try(local.data_disks_by_lun[each.key].caching, null), "ReadOnly")
 }
