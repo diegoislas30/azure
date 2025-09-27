@@ -16,7 +16,7 @@ resource "azurerm_network_interface" "this" {
     private_ip_address_allocation = "Dynamic"
   }
 
-  tags = tomap(variable.tags)
+  tags = tomap(var.tags)
 }
 
 resource "azurerm_linux_virtual_machine" "this" {
@@ -56,7 +56,7 @@ resource "azurerm_linux_virtual_machine" "this" {
     storage_account_uri = var.boot_diagnostics_storage_uri
   }
 
-  tags = tomap(variable.tags)
+  tags = tomap(var.tags)
 }
 
 resource "azurerm_windows_virtual_machine" "this" {
@@ -96,5 +96,5 @@ resource "azurerm_windows_virtual_machine" "this" {
     storage_account_uri = var.boot_diagnostics_storage_uri
   }
 
-  tags = tomap(variable.tags)
+  tags = tomap(var.tags)
 }

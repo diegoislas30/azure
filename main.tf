@@ -604,27 +604,22 @@ module "virtual_machine_web" {
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
   vm_size             = "Standard_DS2_v2"
-  os_type            = "Windows"
+  os_type             = "windows"              # <-- minúsculas
   admin_username      = "azureuser"
   admin_password      = "C0mpleja!1234"
 
   subnet_id = module.vnet_simple.subnet_ids["servidores"]
 
-  # Las VMs nacen sin IP pública; habilita esta bandera solo si es necesario.
-
   data_disks = [
     {
       lun                  = 0
+      size_gb              = 40                # <-- antes era disk_size_gb
       caching              = "ReadOnly"
       storage_account_type = "StandardSSD_LRS"
-      disk_size_gb         = 30
     }
   ]
 
-
-  # Opcional: ajusta los parámetros de Trusted Launch si necesitas valores distintos.
-  security_type       = "TrustedLaunch"
-
+  security_type   = "TrustedLaunch"
   source_image_id = "/subscriptions/9442ead9-7f87-4f7a-b248-53e511abefd7/resourceGroups/rg-ImageTemplate_Xpertal/providers/Microsoft.Compute/galleries/XpertalSharedImageWindows/images/WindowsTest/versions/1.0.3"
 
   tags = {
@@ -635,8 +630,7 @@ module "virtual_machine_web" {
     ambiente = "dev"
   }
 
-    providers = {
-        azurerm = azurerm.xpe_shared_poc
-    }
-
+  providers = {
+    azurerm = azurerm.xpe_shared_poc
+  }
 }
