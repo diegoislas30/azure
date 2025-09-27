@@ -99,7 +99,7 @@ resource "azurerm_windows_virtual_machine" "this" {
 
   secure_boot_enabled = true
   vtpm_enabled        = true
-  security_type       = "TrustedLaunch"
+  
 
   tags = tomap(var.tags)
 
