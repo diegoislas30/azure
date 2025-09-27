@@ -449,6 +449,21 @@
 #
 #   network_security_group_id = module.network_security_group.nsg_id
 #
+#   data_disks = [
+#     {
+#       name                 = "xpeterraformpoc-web-01-data01"
+#       lun                  = 0
+#       caching              = "ReadOnly"
+#       storage_account_type = "Premium_LRS"
+#       disk_size_gb         = 256
+#     }
+#   ]
+#
+#   # Opcional: ajusta los parámetros de Trusted Launch si necesitas valores distintos.
+#   secure_boot_enabled = true
+#   vtpm_enabled        = true
+#   security_type       = "TrustedLaunch"
+#
 #   source_image_id = "/subscriptions/<SUB_SIG>/resourceGroups/<RG_SIG>/providers/Microsoft.Compute/galleries/<GALLERY>/images/<IMAGE>/versions/<VERSION>"
 #
 #   tags = {
