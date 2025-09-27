@@ -19,8 +19,9 @@ variable "vm_size" {
 }
 
 variable "os_type" {
-  description = "Sistema operativo: \"linux\" o \"windows\"."
+  description = "Sistema operativo: \"linux\" o \"windows\". Por defecto se despliega Windows."
   type        = string
+  default     = "windows"
 
   validation {
     condition     = contains(["linux", "windows"], lower(var.os_type))
@@ -101,6 +102,41 @@ variable "os_disk" {
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
     disk_size_gb         = 128
+  }
+}
+
+variable "data_disks" {
+  description = "Lista de discos de datos administrados adicionales a adjuntar a la VM."
+  type = list(object({
+    name                 = string
+    lun                  = number
+    caching              = string
+    storage_account_type = string
+    disk_size_gb         = number
+  }))
+  default = []
+}
+
+variable "secure_boot_enabled" {
+  description = "Habilita Secure Boot en la máquina virtual."
+  type        = bool
+  default     = true
+}
+
+variable "vtpm_enabled" {
+  description = "Habilita vTPM en la máquina virtual."
+  type        = bool
+  default     = true
+}
+
+variable "security_type" {
+  description = "Tipo de seguridad para la VM (por ejemplo, TrustedLaunch)."
+  type        = string
+  default     = "TrustedLaunch"
+
+  validation {
+    condition     = contains(["TrustedLaunch", "Standard"], var.security_type)
+    error_message = "security_type debe ser 'TrustedLaunch' o 'Standard'."
   }
 }
 

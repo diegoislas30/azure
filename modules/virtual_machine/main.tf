@@ -30,6 +30,19 @@ resource "azurerm_network_interface" "this" {
   tags = tomap(var.tags)
 }
 
+resource "azurerm_managed_disk" "data_disks" {
+  for_each = { for disk in var.data_disks : disk.name => disk }
+
+  name                = each.value.name
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  storage_account_type = each.value.storage_account_type
+  create_option        = "Empty"
+  disk_size_gb         = each.value.disk_size_gb
+
+  tags = tomap(var.tags)
+}
+
 resource "azurerm_network_interface_security_group_association" "this" {
   count = var.network_security_group_id != null ? 1 : 0
 
@@ -57,11 +70,22 @@ resource "azurerm_linux_virtual_machine" "this" {
     disk_size_gb         = var.os_disk.disk_size_gb
   }
 
+  dynamic "storage_data_disk" {
+    for_each = var.data_disks
+    content {
+      lun                  = storage_data_disk.value.lun
+      caching              = storage_data_disk.value.caching
+      disk_size_gb         = storage_data_disk.value.disk_size_gb
+      storage_account_type = storage_data_disk.value.storage_account_type
+      managed_disk_id      = azurerm_managed_disk.data_disks[storage_data_disk.value.name].id
+    }
+  }
+
   source_image_id = var.source_image_id
 
-  secure_boot_enabled = true
-  vtpm_enabled        = true
-  security_type       = "TrustedLaunch"
+  secure_boot_enabled = var.secure_boot_enabled
+  vtpm_enabled        = var.vtpm_enabled
+  security_type       = var.security_type
 
   tags = tomap(var.tags)
 
@@ -96,11 +120,22 @@ resource "azurerm_windows_virtual_machine" "this" {
     disk_size_gb         = var.os_disk.disk_size_gb
   }
 
+  dynamic "storage_data_disk" {
+    for_each = var.data_disks
+    content {
+      lun                  = storage_data_disk.value.lun
+      caching              = storage_data_disk.value.caching
+      disk_size_gb         = storage_data_disk.value.disk_size_gb
+      storage_account_type = storage_data_disk.value.storage_account_type
+      managed_disk_id      = azurerm_managed_disk.data_disks[storage_data_disk.value.name].id
+    }
+  }
+
   source_image_id = var.source_image_id
 
-  secure_boot_enabled = true
-  vtpm_enabled        = true
-  security_type       = "TrustedLaunch"
+  secure_boot_enabled = var.secure_boot_enabled
+  vtpm_enabled        = var.vtpm_enabled
+  security_type       = var.security_type
 
   tags = tomap(var.tags)
 

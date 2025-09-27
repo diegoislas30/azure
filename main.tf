@@ -437,7 +437,8 @@
 #   resource_group_name = module.resource_group_xpeterraformpoc2.resource_group_name
 #   location            = module.resource_group_xpeterraformpoc2.resource_group_location
 #   vm_size             = "Standard_DS2_v2"
-#   os_type             = "linux"
+#   # os_type es opcional; por defecto se aprovisiona Windows.
+#   # os_type             = "windows"
 #   admin_username      = "azureuser"
 #   admin_password      = "C0mpleja!1234"
 #
@@ -447,6 +448,21 @@
 #   enable_public_ip = false
 #
 #   network_security_group_id = module.network_security_group.nsg_id
+#
+#   data_disks = [
+#     {
+#       name                 = "xpeterraformpoc-web-01-data01"
+#       lun                  = 0
+#       caching              = "ReadOnly"
+#       storage_account_type = "Premium_LRS"
+#       disk_size_gb         = 256
+#     }
+#   ]
+#
+#   # Opcional: ajusta los parámetros de Trusted Launch si necesitas valores distintos.
+#   secure_boot_enabled = true
+#   vtpm_enabled        = true
+#   security_type       = "TrustedLaunch"
 #
 #   source_image_id = "/subscriptions/<SUB_SIG>/resourceGroups/<RG_SIG>/providers/Microsoft.Compute/galleries/<GALLERY>/images/<IMAGE>/versions/<VERSION>"
 #
