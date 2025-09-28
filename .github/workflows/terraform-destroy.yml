@@ -12,7 +12,6 @@ on:
         required: false
       patterns:
         description: "Nombres o prefijos (una por línea). Ej: network_security_group_2, vm_import_, pip-qa-"
-        default: "network_security_group_2"
         required: false
       mode:
         description: "Cómo casar 'patterns': prefix | exact | regex"
