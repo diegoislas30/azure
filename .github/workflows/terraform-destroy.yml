@@ -1,4 +1,4 @@
-name: Terraform Destroy (simple con aprobación)
+name: Terraform Destroy (solo por módulos)
 
 on:
   workflow_dispatch:
@@ -7,16 +7,11 @@ on:
         description: "Carpeta con main.tf"
         default: "."
         required: true
-      addresses:
-        description: "Direcciones exactas (una por línea). Ej: module.net.azurerm_public_ip.pip_app"
-        required: false
-      patterns:
-        description: "Nombres o prefijos (una por línea). Ej: network_security_group_2, vm_import_, pip-qa-"
-        required: false
-      mode:
-        description: "Cómo casar 'patterns': prefix | exact | regex"
-        default: "prefix"
+      modules:
+        description: "Nombres de módulos a destruir (uno por línea). Ej: network_security_group_2, virtual_machine_01"
         required: true
+        default: |
+          network_security_group_2
 
 env:
   TF_IN_AUTOMATION: true
@@ -27,16 +22,19 @@ env:
 
 jobs:
   plan:
+    name: Plan (destroy por módulos)
     runs-on: ubuntu-latest
     outputs:
       TARGET_ARGS: ${{ steps.build.outputs.TARGET_ARGS }}
     defaults:
       run:
         working-directory: ${{ github.event.inputs.working_directory }}
+
     steps:
       - uses: actions/checkout@v4
 
-      - uses: azure/login@v2
+      - name: Azure Login
+        uses: azure/login@v2
         with:
           allow-no-subscriptions: true
           creds: >
@@ -49,7 +47,7 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Terraform Init
+      - name: Terraform Init (tfstate por rama)
         run: |
           terraform init -input=false \
             -backend-config="resource_group_name=terraform" \
@@ -57,98 +55,82 @@ jobs:
             -backend-config="container_name=terraform-tfstate" \
             -backend-config="key=${{ github.ref_name }}.tfstate"
 
-      - name: Build targets (simple, robust)
+      - name: Build targets (módulos → -target=module.<name>)
         id: build
         shell: bash
         run: |
           set -euo pipefail
 
-          # --- helpers ---
-          trim_lines() { printf "%s" "$1" | tr '\r' '\n' | sed -e 's/^[[:space:]]\+//' -e 's/[[:space:]]\+$//' -e '/^$/d'; }
-          add_addr() { local a="$1"; [ -n "$a" ] && TARGET_LIST+=("$a"); }
+          # Helpers
+          trim() { sed -e 's/^[[:space:]]\+//' -e 's/[[:space:]]\+$//' -e '/^$/d'; }
 
-          declare -a TARGET_LIST=()
+          # Leer módulos desde input
+          MODS_RAW='${{ github.event.inputs.modules }}'
+          mapfile -t MODS < <(printf "%s" "$MODS_RAW" | tr '\r' '\n' | trim)
 
-          ADDR_RAW='${{ github.event.inputs.addresses }}'
-          PATT_RAW='${{ github.event.inputs.patterns }}'
-          MODE='${{ github.event.inputs.mode }}'
-
-          # 1) Direcciones exactas
-          if [ -n "${ADDR_RAW:-}" ]; then
-            while IFS= read -r line; do
-              [ -z "$line" ] && continue
-              add_addr "$line"
-            done < <(trim_lines "$ADDR_RAW")
-          fi
-
-          # 2) Resolver patrones desde tfstate
-          if [ -n "${PATT_RAW:-}" ]; then
-            terraform state pull > state.json
-            while IFS= read -r name; do
-              [ -z "$name" ] && continue
-              mapfile -t MATCHES < <(jq -r --arg name "$name" --arg mode "$MODE" '
-                .resources[]? as $r
-                | ($r.module // "") as $mod
-                | $r.instances[]? as $i
-                | (
-                    if $mode=="exact" then
-                      ((($i.index_key? // "")==$name)
-                       or (((($i.index?|type)=="string") and ($i.index==$name)))
-                       or ((($i.attributes.name? // "")==$name)))
-                    elif $mode=="prefix" then
-                      ((($i.index_key? // "")|startswith($name))
-                       or (((($i.index?|type)=="string") and (($i.index|tostring)|startswith($name))))
-                       or ((($i.attributes.name? // "")|startswith($name))))
-                    else
-                      ((($i.index_key? // "")|test($name))
-                       or (((($i.index?|type)=="string") and (($i.index|tostring)|test($name))))
-                       or ((($i.attributes.name? // "")|test($name))))
-                    end
-                  )
-                | [
-                    ($mod|length>0?($mod+"."):""),
-                    $r.type,".",$r.name,
-                    (if ($i.index_key? // null)!=null then "[" + "\"" + $i.index_key + "\"" + "]"
-                     elif ($i.index? // null)!=null then "[" + (if ($i.index|type)=="string" then "\"" + $i.index + "\"" else ($i.index|tostring) end) + "]"
-                     else "" end)
-                  ] | join("")
-              ' state.json | sed '/^$/d')
-              for addr in "${MATCHES[@]}"; do [ -n "$addr" ] && add_addr "$addr"; done
-            done < <(trim_lines "$PATT_RAW")
-          fi
-
-          # Deduplicar manteniendo orden
-          if [ ${#TARGET_LIST[@]} -gt 0 ]; then
-            declare -A SEEN=()
-            uniq_list=()
-            for a in "${TARGET_LIST[@]}"; do
-              if [[ -z "${SEEN[$a]+x}" ]]; then SEEN[$a]=1; uniq_list+=("$a"); fi
-            done
-            TARGET_LIST=("${uniq_list[@]}")
-          fi
-
-          # Validación final
-          if [ ${#TARGET_LIST[@]} -eq 0 ]; then
-            echo "❌ No se resolvieron recursos. Proporciona 'addresses' o 'patterns' que existan en el tfstate."
+          if [ ${#MODS[@]} -eq 0 ]; then
+            echo "❌ No se proporcionaron módulos." >&2
             exit 1
           fi
 
-          echo "Recursos resueltos:"
-          for a in "${TARGET_LIST[@]}"; do echo "  - $a"; done
+          # Listado del state para validar existencia de cada módulo
+          echo "Leyendo tfstate para validación…"
+          terraform state pull > state.json
+          # Construir un set de prefijos de módulo presentes en el state (p.ej. module.network_security_group_2)
+          mapfile -t STATE_ADDRS < <(jq -r '
+            [.resources[]?.module] | map(select(.!=null)) | unique[]' state.json)
 
-          # Construir TARGET_ARGS sin vacíos
-          TARGET_ARGS=""
-          for a in "${TARGET_LIST[@]}"; do TARGET_ARGS="$TARGET_ARGS -target=$a"; done
+          # Función que verifica si algún address del state comienza con "module.<mod>."
+          module_in_state () {
+            local mod="module.$1"
+            for m in "${STATE_ADDRS[@]}"; do
+              if [[ "$m" == "$mod" ]]; then
+                return 0
+              fi
+            done
+            # fallback: si no hay "module" entries (recursos en root), intentar por si acaso via terraform state list
+            return 1
+          }
+
+          TARGETS=()
+          echo "Validando módulos:"
+          for m in "${MODS[@]}"; do
+            m_clean="$(echo "$m" | tr -d '"' | tr -d "'")"
+            [ -z "$m_clean" ] && continue
+            if module_in_state "$m_clean"; then
+              echo "  ✅ $m_clean"
+              TARGETS+=("-target=module.$m_clean")
+            else
+              # También probar con terraform state list (por si hay recursos que no aparecen en .module del pull)
+              if terraform state list | grep -q "^module\.${m_clean}\." ; then
+                echo "  ✅ $m_clean (por state list)"
+                TARGETS+=("-target=module.$m_clean")
+              else
+                echo "  ⚠️  Módulo no encontrado en el state: $m_clean"
+              fi
+            fi
+          done
+
+          if [ ${#TARGETS[@]} -eq 0 ]; then
+            echo "❌ Ningún módulo coincide con el tfstate. Revisa los nombres (ej: 'network_security_group_2')." >&2
+            echo "Sugerencia: ejecuta 'terraform state list' localmente y copia el prefijo después de 'module.'."
+            exit 1
+          fi
+
+          printf -v TARGET_ARGS "%s " "${TARGETS[@]}"
           echo "TARGET_ARGS=$TARGET_ARGS" >> "$GITHUB_OUTPUT"
-          echo "Targets:$TARGET_ARGS"
+          echo "Targets finales: $TARGET_ARGS"
 
       - name: Plan (destroy targeted)
-        run: terraform plan -destroy -input=false ${{ steps.build.outputs.TARGET_ARGS }} -out=tfplan-destroy
+        run: |
+          terraform plan -destroy -input=false \
+            ${{ steps.build.outputs.TARGET_ARGS }} \
+            -out=tfplan-destroy
 
-      - name: Resumen (qué se eliminará)
+      - name: Resumen de lo que se eliminará
         run: |
           terraform show -json tfplan-destroy > plan.json
-          echo "## Recursos a eliminar" >> "$GITHUB_STEP_SUMMARY"
+          echo "## Recursos a eliminar (según plan)" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "| Tipo | Nombre | RG | Address |" >> "$GITHUB_STEP_SUMMARY"
           echo "|------|--------|----|---------|" >> "$GITHUB_STEP_SUMMARY"
@@ -165,41 +147,51 @@ jobs:
             | "| \(.t) | \(.n) | \(.rg) | `\(.a)` |"
           ' plan.json >> "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/upload-artifact@v4
+      - name: Publicar plan
+        uses: actions/upload-artifact@v4
         with:
           name: tfplan-destroy
           path: tfplan-destroy
 
   approve:
-    # Protege este environment con reviewers en Settings → Environments
-    environment: prd-destroy
+    name: Aprobación requerida
+    environment: prd-destroy   # protege este environment con reviewers
     runs-on: ubuntu-latest
     needs: plan
     steps:
-      - run: echo "Revisa el Summary del job 'plan' y aprueba para continuar."
+      - run: echo "Revisa el Summary del job 'Plan' (tabla de recursos a eliminar) y aprueba para continuar."
 
   destroy:
+    name: Destroy (aprobado)
     runs-on: ubuntu-latest
     needs: [plan, approve]
     defaults:
       run:
         working-directory: ${{ github.event.inputs.working_directory }}
+
     steps:
       - uses: actions/checkout@v4
-      - uses: azure/login@v2
+
+      - name: Azure Login
+        uses: azure/login@v2
         with:
           allow-no-subscriptions: true
           creds: >
             {"clientId":"${{ secrets.AZURE_CLIENT_ID }}",
              "clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}",
              "tenantId":"${{ secrets.AZURE_TENANT_ID }}"}
+
       - uses: hashicorp/setup-terraform@v3
-      - name: Terraform Init
+
+      - name: Terraform Init (tfstate por rama)
         run: |
           terraform init -input=false \
             -backend-config="resource_group_name=terraform" \
             -backend-config="storage_account_name=xpeterraformpoc" \
             -backend-config="container_name=terraform-tfstate" \
             -backend-config="key=${{ github.ref_name }}.tfstate"
-      - name: Destroy (aprobado)
-        run: terraform destroy -input=false -auto-approve ${{ needs.plan.outputs.TARGET_ARGS }}
+
+      - name: Destroy (mismos targets del plan)
+        run: |
+          terraform destroy -input=false -auto-approve \
+            ${{ needs.plan.outputs.TARGET_ARGS }}
