@@ -484,8 +484,8 @@ module "resource_group_xpeterraformpoc" {
  module "network_security_group" {
    source              = "./modules/network_security_group"
    nsg_name            = "xpeterraformpoc-nsg"
-   resource_group_name = module.resource_group_xpeterraformpoc2.resource_group_name
-   location            = module.resource_group_xpeterraformpoc2.resource_group_location
+   resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
+   location            = module.resource_group_xpeterraformpoc.resource_group_location
 
    security_rules = [
      {
@@ -528,8 +528,8 @@ module "resource_group_xpeterraformpoc" {
  module "network_security_group_2" {
    source              = "./modules/network_security_group"
    nsg_name            = "xpeterraformpoc2-nsg"
-   resource_group_name = module.resource_group_xpeterraformpoc2.resource_group_name
-   location            = module.resource_group_xpeterraformpoc2.resource_group_location
+   resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
+   location            = module.resource_group_xpeterraformpoc.resource_group_location
 
    security_rules = [
      {
