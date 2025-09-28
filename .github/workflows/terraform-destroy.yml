@@ -17,10 +17,11 @@ on:
       name_patterns:
         description: "Nombres o prefijos (una por línea). Ej: vm_import_2, network_security_group_prueba1, pip- (como prefijo)"
         required: false
+        default: "network_security_group_2"
       match_mode:
         description: "Cómo casar 'name_patterns': exact | prefix | regex"
         default: "prefix"
-        required: true
+        required: true  
       resource_types:
         description: "Filtrar por tipos (una por línea). Ej: azurerm_windows_virtual_machine, azurerm_network_security_group"
         required: false
