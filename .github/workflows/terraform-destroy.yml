@@ -1,7 +1,37 @@
-name: Terraform Destroy Manual
+name: Terraform Destroy (por nombre/prefijo/regex + aprobación)
 
 on:
   workflow_dispatch:
+    inputs:
+      working_directory:
+        description: "Carpeta con main.tf"
+        default: "."
+        required: true
+
+      # === Modo 1: Direcciones exactas (opcional)
+      resource_addresses:
+        description: "Direcciones exactas (una por línea). Ej: module.vm.azurerm_windows_virtual_machine.this[\"vm_import_2\"]"
+        required: false
+
+      # === Modo 2: Búsqueda por nombre/prefijo/regex (recomendado)
+      name_patterns:
+        description: "Nombres o prefijos (una por línea). Ej: vm_import_2, network_security_group_prueba1, pip- (como prefijo)"
+        required: false
+      match_mode:
+        description: "Cómo casar 'name_patterns': exact | prefix | regex"
+        default: "prefix"
+        required: true
+      resource_types:
+        description: "Filtrar por tipos (una por línea). Ej: azurerm_windows_virtual_machine, azurerm_network_security_group"
+        required: false
+      module_paths:
+        description: "Limitar a módulos (prefijos). Ej: module.vm, module.network"
+        required: false
+
+      # === Modo 3: Resource Group por nombre real de Azure (opcional)
+      rg_names:
+        description: "Nombres exactos de RG (una por línea)."
+        required: false
 
 env:
   TF_IN_AUTOMATION: true
@@ -11,26 +41,26 @@ env:
   ARM_ACCESS_KEY:    ${{ secrets.ARM_ACCESS_KEY }}
 
 jobs:
-  destroy:
-    name: Terraform Destroy (manual)
+  plan:
+    name: Plan (destroy con resolución por nombre/prefijo)
     runs-on: ubuntu-latest
-    environment: prd  # ⚠️ Protege este entorno en GitHub > Settings > Environments
+    outputs:
+      TARGET_ARGS: ${{ steps.build_targets.outputs.TARGET_ARGS }}
+    defaults:
+      run:
+        working-directory: ${{ github.event.inputs.working_directory }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Azure Login
-        uses: azure/login@v2
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
         with:
           allow-no-subscriptions: true
           creds: >
             {"clientId":"${{ secrets.AZURE_CLIENT_ID }}",
              "clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}",
              "tenantId":"${{ secrets.AZURE_TENANT_ID }}"}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v3
+      - run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Terraform Init (tfstate por rama)
         run: |
@@ -40,14 +70,183 @@ jobs:
             -backend-config="container_name=terraform-tfstate" \
             -backend-config="key=${{ github.ref_name }}.tfstate"
 
-      - name: Terraform Plan (destroy preview)
-        run: terraform plan -destroy -input=false -out=tfplan-destroy
+      - name: Build -target por address y por nombre/prefijo/regex
+        id: build_targets
+        shell: bash
+        run: |
+          set -euo pipefail
 
-      - name: Publicar plan (destroy)
-        uses: actions/upload-artifact@v4
+          norm_lines () { printf "%s" "$1" | tr '\r' '\n' | sed '/^[[:space:]]*$/d' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'; }
+          declare -A DEDUP; add_target(){ [ -z "$1" ] || DEDUP["$1"]=1; }
+
+          ADDRS_RAW='${{ github.event.inputs.resource_addresses }}'
+          NAMES_RAW='${{ github.event.inputs.name_patterns }}'
+          MODPATHS_RAW='${{ github.event.inputs.module_paths }}'
+          TYPES_RAW='${{ github.event.inputs.resource_types }}'
+          RG_RAW='${{ github.event.inputs.rg_names }}'
+          MODE='${{ github.event.inputs.match_mode }}'
+
+          mapfile -t ADDRS    < <( [ -n "${ADDRS_RAW:-}" ]    && norm_lines "$ADDRS_RAW"    || true )
+          mapfile -t NAMES    < <( [ -n "${NAMES_RAW:-}" ]    && norm_lines "$NAMES_RAW"    || true )
+          mapfile -t MODPATHS < <( [ -n "${MODPATHS_RAW:-}" ] && norm_lines "$MODPATHS_RAW" || true )
+          mapfile -t TYPES    < <( [ -n "${TYPES_RAW:-}" ]    && norm_lines "$TYPES_RAW"    || true )
+          mapfile -t RG_NAMES < <( [ -n "${RG_RAW:-}" ]       && norm_lines "$RG_RAW"       || true )
+
+          # 1) Direcciones exactas
+          for a in "${ADDRS[@]:-}"; do add_target "-target=$a"; done
+
+          # 2 y 3) Resolver desde state
+          NEED_STATE=0
+          [ ${#NAMES[@]} -gt 0 ] && NEED_STATE=1
+          [ ${#RG_NAMES[@]} -gt 0 ] && NEED_STATE=1
+          if [ $NEED_STATE -eq 1 ]; then terraform state pull > state.json; fi
+
+          # 3) Resource Group por nombre real
+          for rg in "${RG_NAMES[@]:-}"; do
+            mapfile -t RG_ADDRS < <(jq -r --arg NAME "$rg" '
+              .resources[]?|select(.type=="azurerm_resource_group")
+              | . as $r | (.module // "") as $mod
+              | .instances[]?|select(.attributes.name==$NAME)
+              | [($mod|length>0?($mod+"."):""),$r.type,".",$r.name,
+                 (if has("index_key") and .index_key!=null then "[" + "\"" + .index_key + "\"" + "]"
+                  elif has("index") and .index!=null then "[" + (if (.index|type)=="string" then "\"" + .index + "\"" else (.index|tostring) end) + "]"
+                  else "" end)]|join("")' state.json)
+            for a in "${RG_ADDRS[@]}"; do add_target "-target=$a"; done
+          done
+
+          # 2) Búsqueda por nombre/prefijo/regex en cualquier tipo
+          if [ ${#NAMES[@]} -gt 0 ]; then
+            # Filtro por tipos
+            if [ ${#TYPES[@]} -gt 0 ]; then
+              JQ_TYPE_FILTER=$(printf '(.type=="%s") or ' "${TYPES[@]}"); JQ_TYPE_FILTER="${JQ_TYPE_FILTER% or }"
+            else
+              JQ_TYPE_FILTER="true"
+            fi
+
+            # Filtro por módulos (prefijo de module_path)
+            jq_in_modpaths='true'
+            if [ ${#MODPATHS[@]} -gt 0 ]; then
+              # construye expresión jq para probar prefijos de módulo
+              jq_in_modpaths='
+                ( . as $addr
+                  | ($addr|split(".azurerm_")[0]) as $pref
+                  | ('"$(printf '($pref|startswith("%s")) or ' "${MODPATHS[@]}")"'
+                    false)
+                )'
+            fi
+
+            # Modo de matching
+            case "$MODE" in
+              exact)  jq_match='( ($i|has("index_key") and $i.index_key==$NAME) or ($i|has("index") and $i.index==$NAME) or ($i.attributes|has("name") and $i.attributes.name==$NAME) )' ;;
+              prefix) jq_match='( ($i|has("index_key") and ($i.index_key|startswith($NAME))) or
+                                  ($i|has("index") and ( ($i.index|type)=="string" and ($i.index|startswith($NAME)) )) or
+                                  ($i.attributes|has("name") and ($i.attributes.name|startswith($NAME))) )' ;;
+              regex)  jq_match='( ($i|has("index_key") and ($i.index_key|test($NAME))) or
+                                  ($i|has("index") and ( ($i.index|type)=="string" and ($i.index|test($NAME)) )) or
+                                  ($i.attributes|has("name") and ($i.attributes.name|test($NAME))) )' ;;
+              *) echo "match_mode inválido: $MODE"; exit 1 ;;
+            esac
+
+            for nm in "${NAMES[@]}"; do
+              mapfile -t MATCHES < <(jq -r --arg NAME "$nm" '
+                .resources[]? as $r | select('"$JQ_TYPE_FILTER"')
+                | (.module // "") as $mod | $r.instances[]? as $i
+                | select('"$jq_match"')
+                | [
+                    ($mod|length>0?($mod+"."):""),
+                    $r.type,".",$r.name,
+                    (if has("index_key") and .index_key!=null then "[" + "\"" + .index_key + "\"" + "]"
+                     elif has("index") and .index!=null then "[" + (if (.index|type)=="string" then "\"" + .index + "\"" else (.index|tostring) end) + "]"
+                     else "" end)
+                  ] | join("")
+              ' state.json | jq -r 'select('"$jq_in_modpaths"')' )
+              for a in "${MATCHES[@]}"; do add_target "-target=$a"; done
+            done
+          fi
+
+          # Emitir targets únicos
+          if [ ${#DEDUP[@]} -eq 0 ]; then echo "❌ No hay targets"; exit 1; fi
+          TARGET_ARGS=""; for k in "${!DEDUP[@]}"; do TARGET_ARGS="$TARGET_ARGS $k"; done
+          echo "TARGET_ARGS=$TARGET_ARGS" >> "$GITHUB_OUTPUT"
+
+      - name: Plan (destroy targeted)
+        run: |
+          terraform plan -destroy -input=false \
+            ${{ steps.build_targets.outputs.TARGET_ARGS }} \
+            -out=tfplan-destroy
+
+      - name: Resumen legible de recursos a ELIMINAR
+        run: |
+          terraform show -json tfplan-destroy > plan.json
+          echo "## Recursos a eliminar (Tipo | Nombre | RG | Address)" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Tipo | Nombre | Resource Group | Address |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|------|--------|----------------|---------|" >> "$GITHUB_STEP_SUMMARY"
+          DELETES=$(jq -r '
+            .resource_changes[]
+            | select(.change.actions|index("delete"))
+            | {
+                address,
+                type,
+                name: (
+                  .change.before.name // .change.after.name // .name // "(sin-name)"
+                ),
+                rg: (
+                  .change.before.resource_group_name
+                  // .change.before.resource_group
+                  // "(n/a)"
+                )
+              }
+            | [.type, .name, .rg, .address]
+            | @tsv
+          ' plan.json)
+          if [ -z "$DELETES" ]; then
+            echo "> No se detectaron eliminaciones." >> "$GITHUB_STEP_SUMMARY"
+          else
+            while IFS=$'\t' read -r type name rg addr; do
+              type=${type//|/\\|}; name=${name//|/\\|}; rg=${rg//|/\\|}; addr=${addr//|/\\|}
+              echo "| $type | $name | $rg | \`$addr\` |" >> "$GITHUB_STEP_SUMMARY"
+            done <<< "$DELETES"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with: { name: tfplan-destroy, path: tfplan-destroy }
+
+  approval:
+    name: Aprobación (requerida)
+    runs-on: ubuntu-latest
+    needs: plan
+    environment: prd-destroy
+    steps:
+      - run: |
+          echo "Revisa el Summary del job 'Plan' (tabla de recursos a eliminar)."
+          echo "Aprueba para continuar."
+
+  destroy:
+    name: Destroy (aprobado)
+    runs-on: ubuntu-latest
+    needs: [plan, approval]
+    defaults:
+      run:
+        working-directory: ${{ github.event.inputs.working_directory }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
         with:
-          name: tfplan-destroy
-          path: tfplan-destroy
-
-      - name: Terraform Destroy
-        run: terraform destroy -input=false -auto-approve
+          allow-no-subscriptions: true
+          creds: >
+            {"clientId":"${{ secrets.AZURE_CLIENT_ID }}",
+             "clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}",
+             "tenantId":"${{ secrets.AZURE_TENANT_ID }}"}
+      - uses: hashicorp/setup-terraform@v3
+      - name: Terraform Init (tfstate por rama)
+        run: |
+          terraform init -input=false \
+            -backend-config="resource_group_name=terraform" \
+            -backend-config="storage_account_name=xpeterraformpoc" \
+            -backend-config="container_name=terraform-tfstate" \
+            -backend-config="key=${{ github.ref_name }}.tfstate"
+      - name: Destroy (aprobado)
+        run: |
+          terraform destroy -input=false -auto-approve \
+            ${{ needs.plan.outputs.TARGET_ARGS }}
