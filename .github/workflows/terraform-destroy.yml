@@ -12,6 +12,7 @@ on:
         required: false
       patterns:
         description: "Nombres o prefijos (una por línea). Ej: network_security_group_2, vm_import_, pip-qa-"
+        default: "network_security_group_2"
         required: false
       mode:
         description: "Cómo casar 'patterns': prefix | exact | regex"
@@ -33,7 +34,6 @@ jobs:
     defaults:
       run:
         working-directory: ${{ github.event.inputs.working_directory }}
-
     steps:
       - uses: actions/checkout@v4
 
@@ -58,30 +58,36 @@ jobs:
             -backend-config="container_name=terraform-tfstate" \
             -backend-config="key=${{ github.ref_name }}.tfstate"
 
-      - name: Build targets (simple)
+      - name: Build targets (simple, robust)
         id: build
         shell: bash
         run: |
           set -euo pipefail
 
-          norm_lines () { printf "%s" "$1" | tr '\r' '\n' | sed '/^[[:space:]]*$/d'; }
-          declare -A DEDUP; add(){ [ -z "$1" ] || DEDUP["$1"]=1; }
+          # --- helpers ---
+          trim_lines() { printf "%s" "$1" | tr '\r' '\n' | sed -e 's/^[[:space:]]\+//' -e 's/[[:space:]]\+$//' -e '/^$/d'; }
+          add_addr() { local a="$1"; [ -n "$a" ] && TARGET_LIST+=("$a"); }
+
+          declare -a TARGET_LIST=()
 
           ADDR_RAW='${{ github.event.inputs.addresses }}'
           PATT_RAW='${{ github.event.inputs.patterns }}'
           MODE='${{ github.event.inputs.mode }}'
 
-          mapfile -t ADDRS < <( [ -n "${ADDR_RAW:-}" ] && norm_lines "$ADDR_RAW" || true )
-          mapfile -t PATTS < <( [ -n "${PATT_RAW:-}" ] && norm_lines "$PATT_RAW" || true )
+          # 1) Direcciones exactas
+          if [ -n "${ADDR_RAW:-}" ]; then
+            while IFS= read -r line; do
+              [ -z "$line" ] && continue
+              add_addr "$line"
+            done < <(trim_lines "$ADDR_RAW")
+          fi
 
-          # 1) Direcciones exactas (si las hay)
-          for a in "${ADDRS[@]:-}"; do add "-target=$a"; done
-
-          # 2) Resolver por nombre/prefijo/regex desde el tfstate (si hay patrones)
-          if [ ${#PATTS[@]} -gt 0 ]; then
+          # 2) Resolver patrones desde tfstate
+          if [ -n "${PATT_RAW:-}" ]; then
             terraform state pull > state.json
-            for nm in "${PATTS[@]}"; do
-              mapfile -t MATCHES < <(jq -r --arg name "$nm" --arg mode "$MODE" '
+            while IFS= read -r name; do
+              [ -z "$name" ] && continue
+              mapfile -t MATCHES < <(jq -r --arg name "$name" --arg mode "$MODE" '
                 .resources[]? as $r
                 | ($r.module // "") as $mod
                 | $r.instances[]? as $i
@@ -107,19 +113,33 @@ jobs:
                      elif ($i.index? // null)!=null then "[" + (if ($i.index|type)=="string" then "\"" + $i.index + "\"" else ($i.index|tostring) end) + "]"
                      else "" end)
                   ] | join("")
-              ' state.json)
-              for addr in "${MATCHES[@]:-}"; do add "-target=$addr"; done
-            done
+              ' state.json | sed '/^$/d')
+              for addr in "${MATCHES[@]}"; do [ -n "$addr" ] && add_addr "$addr"; done
+            done < <(trim_lines "$PATT_RAW")
           fi
 
-          # Salir si no hay nada
-          if [ ${#DEDUP[@]} -eq 0 ]; then
-            echo "❌ No se construyeron targets. Proporciona 'addresses' o 'patterns'." >&2
+          # Deduplicar manteniendo orden
+          if [ ${#TARGET_LIST[@]} -gt 0 ]; then
+            declare -A SEEN=()
+            uniq_list=()
+            for a in "${TARGET_LIST[@]}"; do
+              if [[ -z "${SEEN[$a]+x}" ]]; then SEEN[$a]=1; uniq_list+=("$a"); fi
+            done
+            TARGET_LIST=("${uniq_list[@]}")
+          fi
+
+          # Validación final
+          if [ ${#TARGET_LIST[@]} -eq 0 ]; then
+            echo "❌ No se resolvieron recursos. Proporciona 'addresses' o 'patterns' que existan en el tfstate."
             exit 1
           fi
 
+          echo "Recursos resueltos:"
+          for a in "${TARGET_LIST[@]}"; do echo "  - $a"; done
+
+          # Construir TARGET_ARGS sin vacíos
           TARGET_ARGS=""
-          for k in "${!DEDUP[@]}"; do TARGET_ARGS="$TARGET_ARGS $k"; done
+          for a in "${TARGET_LIST[@]}"; do TARGET_ARGS="$TARGET_ARGS -target=$a"; done
           echo "TARGET_ARGS=$TARGET_ARGS" >> "$GITHUB_OUTPUT"
           echo "Targets:$TARGET_ARGS"
 
@@ -152,7 +172,7 @@ jobs:
           path: tfplan-destroy
 
   approve:
-    # Protege con reviewers en Settings → Environments
+    # Protege este environment con reviewers en Settings → Environments
     environment: prd-destroy
     runs-on: ubuntu-latest
     needs: plan
