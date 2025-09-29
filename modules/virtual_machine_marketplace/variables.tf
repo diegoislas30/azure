@@ -49,7 +49,7 @@ variable "security_type" {
   }
 }
 
-# Imagen de Marketplace
+# Imagen de Marketplace (obligatoria en este módulo)
 variable "marketplace_image" {
   description = "Referencia de imagen de Azure Marketplace."
   type = object({
@@ -135,4 +135,36 @@ variable "tags" {
     proyecto  = string
     ambiente  = string
   })
+}
+
+# ===================== IP PRIVADA (Dinámica/Estática) =====================
+
+variable "private_ip_version" {
+  description = "Versión de IP privada: 'IPv4' o 'IPv6'."
+  type        = string
+  default     = "IPv4"
+  validation {
+    condition     = contains(["ipv4", "ipv6"], lower(var.private_ip_version))
+    error_message = "private_ip_version debe ser 'IPv4' o 'IPv6'."
+  }
+}
+
+variable "private_ip_allocation" {
+  description = "Asignación de IP privada: 'Dynamic' o 'Static'."
+  type        = string
+  default     = "Dynamic"
+  validation {
+    condition     = contains(["dynamic", "static"], lower(var.private_ip_allocation))
+    error_message = "private_ip_allocation debe ser 'Dynamic' o 'Static'."
+  }
+}
+
+variable "private_ip_address" {
+  description = "IP privada (requerida si private_ip_allocation = 'Static')."
+  type        = string
+  default     = null
+  validation {
+    condition     = lower(var.private_ip_allocation) != "static" || (var.private_ip_address != null && length(var.private_ip_address) > 0)
+    error_message = "Debes especificar private_ip_address cuando private_ip_allocation = 'Static'."
+  }
 }

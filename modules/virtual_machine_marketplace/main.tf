@@ -2,8 +2,11 @@ locals {
   is_trusted_launch       = lower(var.security_type) == "trustedlaunch"
   os_disk_caching_default = coalesce(var.os_disk_caching, "ReadWrite")
 
-  # Mapear data_disks por LUN para crear y adjuntar discos
+  # Mapear data_disks por LUN para crear y adjuntar discos gestionados
   data_disks_by_lun = { for d in var.data_disks : d.lun => d }
+
+  # Normalizar asignación de IP privada
+  ip_alloc = lower(var.private_ip_allocation) == "static" ? "Static" : "Dynamic"
 }
 
 # NIC (sin IP pública, sin NSG en la NIC)
@@ -17,7 +20,9 @@ resource "azurerm_network_interface" "this" {
   ip_configuration {
     name                          = "ipconfig1"
     subnet_id                     = var.subnet_id
-    private_ip_address_allocation = "Dynamic"
+    private_ip_address_version    = var.private_ip_version
+    private_ip_address_allocation = local.ip_alloc
+    private_ip_address            = local.ip_alloc == "Static" ? var.private_ip_address : null
   }
 
   tags = var.tags
@@ -45,6 +50,7 @@ resource "azurerm_linux_virtual_machine" "this" {
   }
 
   # Seguridad
+  
   vtpm_enabled        = local.is_trusted_launch
   secure_boot_enabled = local.is_trusted_launch
 
@@ -85,7 +91,7 @@ resource "azurerm_windows_virtual_machine" "this" {
     version   = var.marketplace_image.version
   }
 
-  
+
   vtpm_enabled        = local.is_trusted_launch
   secure_boot_enabled = local.is_trusted_launch
 
