@@ -155,7 +155,7 @@ jobs:
 
   approve:
     name: Aprobación requerida
-    environment: prd-destroy   # protege este environment con reviewers
+    environment: prd   # protege este environment con reviewers
     runs-on: ubuntu-latest
     needs: plan
     steps:
