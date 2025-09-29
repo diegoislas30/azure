@@ -91,7 +91,7 @@ resource "azurerm_windows_virtual_machine" "this" {
     version   = var.marketplace_image.version
   }
 
-
+  
   vtpm_enabled        = local.is_trusted_launch
   secure_boot_enabled = local.is_trusted_launch
 

@@ -1,8 +1,12 @@
 locals {
-  is_trusted_launch        = lower(var.security_type) == "trustedlaunch"
-  os_disk_caching_default  = coalesce(var.os_disk_caching, "ReadWrite")
-  # Mapear data_disks por LUN para usar en for_each y leer propiedades (caching, sku, etc.)
+  is_trusted_launch       = lower(var.security_type) == "trustedlaunch"
+  os_disk_caching_default = coalesce(var.os_disk_caching, "ReadWrite")
+
+  # Mapear data_disks por LUN para crear y adjuntar discos gestionados
   data_disks_by_lun = { for d in var.data_disks : d.lun => d }
+
+  # Normalizar asignación de IP privada
+  ip_alloc = lower(var.private_ip_allocation) == "static" ? "Static" : "Dynamic"
 }
 
 # NIC (sin IP pública, sin NSG en la NIC)
@@ -16,7 +20,9 @@ resource "azurerm_network_interface" "this" {
   ip_configuration {
     name                          = "ipconfig1"
     subnet_id                     = var.subnet_id
-    private_ip_address_allocation = "Dynamic"
+    private_ip_address_version    = var.private_ip_version
+    private_ip_address_allocation = local.ip_alloc
+    private_ip_address            = local.ip_alloc == "Static" ? var.private_ip_address : null
   }
 
   tags = var.tags
@@ -35,8 +41,10 @@ resource "azurerm_linux_virtual_machine" "this" {
   network_interface_ids           = [azurerm_network_interface.this.id]
   zone                            = var.zone
 
+  # Imagen desde SIG o Managed Image por ID
   source_image_id = var.source_image_id
 
+  # Seguridad
   
   vtpm_enabled        = local.is_trusted_launch
   secure_boot_enabled = local.is_trusted_launch
@@ -48,12 +56,10 @@ resource "azurerm_linux_virtual_machine" "this" {
     disk_size_gb         = var.os_disk_size_gb
   }
 
-  # Boot diagnostics (solo si se especifica URI)
+  # Boot diagnostics (opcional)
   dynamic "boot_diagnostics" {
     for_each = var.boot_diagnostics_storage_uri == null ? [] : [1]
-    content {
-      storage_account_uri = var.boot_diagnostics_storage_uri
-    }
+    content { storage_account_uri = var.boot_diagnostics_storage_uri }
   }
 
   tags = var.tags
@@ -72,6 +78,7 @@ resource "azurerm_windows_virtual_machine" "this" {
   network_interface_ids = [azurerm_network_interface.this.id]
   zone                  = var.zone
 
+  # Imagen desde SIG o Managed Image por ID
   source_image_id = var.source_image_id
 
   
@@ -87,17 +94,15 @@ resource "azurerm_windows_virtual_machine" "this" {
 
   dynamic "boot_diagnostics" {
     for_each = var.boot_diagnostics_storage_uri == null ? [] : [1]
-    content {
-      storage_account_uri = var.boot_diagnostics_storage_uri
-    }
+    content { storage_account_uri = var.boot_diagnostics_storage_uri }
   }
 
   tags = var.tags
 }
 
-# ===================== DATA DISKS (Managed Disks + Attachments) =====================
+# ===================== DATA DISKS =====================
 
-# Crear los Managed Disks vacíos según tu lista (uno por LUN)
+# Crear Managed Disks vacíos
 resource "azurerm_managed_disk" "data" {
   for_each            = local.data_disks_by_lun
   name                = "${var.vm_name}-datadisk-${each.key}"
@@ -111,20 +116,20 @@ resource "azurerm_managed_disk" "data" {
   tags = var.tags
 }
 
-# Adjuntar a VM Linux (si aplica)
+# Adjuntar a VM Linux
 resource "azurerm_virtual_machine_data_disk_attachment" "linux" {
   for_each           = lower(var.os_type) == "linux" ? azurerm_managed_disk.data : {}
   managed_disk_id    = each.value.id
   virtual_machine_id = azurerm_linux_virtual_machine.this[0].id
-  lun                = tonumber(split("-", each.value.name)[length(split("-", each.value.name)) - 1]) # o simplemente each.key
+  lun                = each.key
   caching            = coalesce(try(local.data_disks_by_lun[each.key].caching, null), "ReadOnly")
 }
 
-# Adjuntar a VM Windows (si aplica)
+# Adjuntar a VM Windows
 resource "azurerm_virtual_machine_data_disk_attachment" "windows" {
   for_each           = lower(var.os_type) == "windows" ? azurerm_managed_disk.data : {}
   managed_disk_id    = each.value.id
   virtual_machine_id = azurerm_windows_virtual_machine.this[0].id
-  lun                = tonumber(split("-", each.value.name)[length(split("-", each.value.name)) - 1]) # o simplemente each.key
+  lun                = each.key
   caching            = coalesce(try(local.data_disks_by_lun[each.key].caching, null), "ReadOnly")
 }

@@ -125,7 +125,7 @@ variable "boot_diagnostics_storage_uri" {
   default     = null
 }
 
-# Tags (igual que tu módulo anterior)
+# Tags
 variable "tags" {
   description = "A mapping of tags to assign to the resources"
   type = object({

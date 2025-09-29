@@ -49,8 +49,9 @@ variable "security_type" {
   }
 }
 
+# Imagen por ID ARM (SIG: debe ser la VERSIÓN; Managed Image también soportado)
 variable "source_image_id" {
-  description = "ARM ID de la imagen (Shared Image Version o Managed Image). Ej: /subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.Compute/galleries/<gallery>/images/<image>/versions/<version>"
+  description = "ID ARM de la imagen. Para SIG debe terminar en /versions/<x.y.z> y estar replicada en la región de la VM; el SP debe tener permiso de lectura."
   type        = string
 }
 
@@ -122,12 +123,43 @@ variable "boot_diagnostics_storage_uri" {
 # Tags
 variable "tags" {
   description = "A mapping of tags to assign to the resources"
-  type        = object({
+  type = object({
     UDN       = string
     OWNER     = string
     xpeowner  = string
     proyecto  = string
     ambiente  = string
   })
-  
+}
+
+# ===================== IP PRIVADA (Dinámica/Estática) =====================
+
+variable "private_ip_version" {
+  description = "Versión de IP privada: 'IPv4' o 'IPv6'."
+  type        = string
+  default     = "IPv4"
+  validation {
+    condition     = contains(["ipv4", "ipv6"], lower(var.private_ip_version))
+    error_message = "private_ip_version debe ser 'IPv4' o 'IPv6'."
+  }
+}
+
+variable "private_ip_allocation" {
+  description = "Asignación de IP privada: 'Dynamic' o 'Static'."
+  type        = string
+  default     = "Dynamic"
+  validation {
+    condition     = contains(["dynamic", "static"], lower(var.private_ip_allocation))
+    error_message = "private_ip_allocation debe ser 'Dynamic' o 'Static'."
+  }
+}
+
+variable "private_ip_address" {
+  description = "IP privada (requerida si private_ip_allocation = 'Static')."
+  type        = string
+  default     = null
+  validation {
+    condition     = lower(var.private_ip_allocation) != "static" || (var.private_ip_address != null && length(var.private_ip_address) > 0)
+    error_message = "Debes especificar private_ip_address cuando private_ip_allocation = 'Static'."
+  }
 }
