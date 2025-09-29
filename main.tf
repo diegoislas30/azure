@@ -72,7 +72,7 @@ module "virtual_machine_web" {
   data_disks = [
     {
       lun               = 0
-      disk_size_gb     = 40
+      size_gb     = 40
       storage_account_type = "Standard_LRS"
       caching          = "ReadOnly"
     }
