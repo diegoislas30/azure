@@ -44,3 +44,20 @@
 #     azurerm = azurerm.xpe_shared_poc
 #   }
 # }
+
+
+
+## == Ejemplo de como asociar un NSG a un subnet ==
+
+# Asocia un Grupo de Seguridad de Red (NSG) con la subred "web" en la red virtual especificada.
+# - Utiliza la configuración del proveedor `azurerm.xpe_shared_poc`.
+# - El ID de la subred se obtiene de la salida del módulo `vnet_xpeterraformpoc2` para la subred "web".
+# - El ID del NSG se obtiene de la salida del módulo `network_security_group`.
+
+# resource "azurerm_subnet_network_security_group_association" "web_assoc" {
+#  provider                  = azurerm.xpe_shared_poc
+# subnet_id                 = module.vnet_xpeterraformpoc2.subnet_ids["web"]
+#  network_security_group_id = module.network_security_group.nsg_id
+# }
+
+## ================================================================== ##
