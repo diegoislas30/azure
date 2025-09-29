@@ -23,3 +23,8 @@ output "vnet_simple_name" {
   description = "Nombre de la VNet simple"
   value       = module.vnet_simple.vnet_name
 }
+
+output "vm_web_id" {
+  description = "ID de la VM Web"
+  value       = module.virtual_machine_web.vm_id
+}
