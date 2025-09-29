@@ -15,8 +15,3 @@ output "rg_location" {
   value       = module.rg_terraform_vm.resource_group_location
 }
 
-# Si tu módulo expone las tags
-output "rg_tags" {
-  description = "Tags del Resource Group"
-  value       = module.rg_terraform_vm.resource_group_tags
-}
