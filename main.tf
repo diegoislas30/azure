@@ -1,6 +1,6 @@
 module "resource_group_terraform" {
   source   = "./modules/resource_group"
-  name     = "rg-terraform-vm"
+  resource_group_name = "rg-terraform-vm"
   location = "southcentralus"
   
     tags = {
@@ -15,4 +15,6 @@ module "resource_group_terraform" {
       azurerm = azurerm.xpe_shared_poc
     }
 }
+
+
 
