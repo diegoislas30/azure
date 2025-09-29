@@ -1,5 +1,22 @@
-output "resource_group_id" {
-  value       = module.rg_terraform_vm.id
-  description = "The ID of the Resource Group"
+# outputs.tf (root)
+
+output "rg_name" {
+  description = "Nombre del Resource Group"
+  value       = module.rg_terraform_vm.resource_group_name
 }
 
+output "rg_id" {
+  description = "ID del Resource Group"
+  value       = module.rg_terraform_vm.resource_group_id
+}
+
+output "rg_location" {
+  description = "Región del Resource Group"
+  value       = module.rg_terraform_vm.resource_group_location
+}
+
+# Si tu módulo expone las tags
+output "rg_tags" {
+  description = "Tags del Resource Group"
+  value       = module.rg_terraform_vm.resource_group_tags
+}
