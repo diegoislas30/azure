@@ -1,24 +1,19 @@
 module "resource_group_xpeterraformpoc" {
-    source = "./modules/resource_group"
-
-    resource_group_name = "xpeterraformpoc-rg"
-    location            = "southcentralus"
-
-    tags = {
-        UDN      = "Xpertal"
-        OWNER    = "Diego Enrique Islas Cuervo"
-        xpeowner = "diegoenrique.islas@xpertal.com"
-        proyecto = "terraform"
-        ambiente = "dev"
-    }
-
-    providers = {
-        azurerm = azurerm.xpe_shared_poc
-    }
+  source              = "./modules/resource_group"
+  resource_group_name = "xpeterraformpoc-rg"
+  location            = "southcentralus"
+  tags = {
+    UDN = "XPERTAL"
+    OWNER = "PEDRO JULIO "
+    xpeowner = "PEDRO JULIO "
+    proyecto = "terraform"
+    ambiente = "poc"
+  }
+  providers = {
+    azurerm = azurerm.xpe_shared_poc
+  }
 }
 
-
-## == Ejemplo de declarar el modulo de vnet sin peerings ni delegaciones ==
 module "vnet_simple" {
   source              = "./modules/vnets"
   vnet_name           = "vnet-simple"
@@ -48,45 +43,35 @@ module "vnet_simple" {
   providers = {
     azurerm = azurerm.xpe_shared_poc
   }
-}
 
-module "virtual_machine_web" {
+
+  }
+  
+  module "virtual_machine_web" {
   source              = "./modules/virtual_machine"
   vm_name             = "vm-web-01"
   resource_group_name = module.resource_group_xpeterraformpoc.resource_group_name
   location            = module.resource_group_xpeterraformpoc.resource_group_location
   subnet_id           = module.vnet_simple.subnet_ids["servidores"]
-  private_ip_allocation = "Static"
-  private_ip_address = "10.10.1.100"
 
   os_type       = "windows"
   vm_size       = "Standard_DS2_v2"
   security_type = "Standard"  # usa TrustedLaunch solo si la imagen es Gen2
 
   # ID de la VERSIÓN SIG (termina en /versions/x.y.z)
-  source_image_id = "/subscriptions/9442ead9-7f87-4f7a-b248-53e511abefd7/resourceGroups/rg-ImageTemplate_Xpertal/providers/Microsoft.Compute/galleries/XpertalSharedImageWindows/images/Windows_2019"
+  source_image_id = "/subscriptions/9442ead9-7f87-4f7a-b248-53e511abefd7/resourceGroups/rg-ImageTemplate_Xpertal/providers/Microsoft.Compute/galleries/XpertalSharedImageWindows/images/Windows_2022/versions/1.0.0"
 
   admin_username = var.admin_username
   admin_password = var.admin_password
 
-  data_disks = [
-    {
-      lun               = 0
-      size_gb     = 40
-      storage_account_type = "Standard_LRS"
-      caching          = "ReadOnly"
-    }
-  ]
+  data_disks = [{ lun = 0, size_gb = 40 }]
 
   tags = {
-    UDN      = "Xpertal"
-    OWNER    = "Diego Islas"
-    xpeowner = "diegoenrique.islas@xpertal.com"
-    proyecto = "terraform"
-    ambiente = "dev"
-    }
-
-    providers = {
-        azurerm = azurerm.xpe_shared_poc
-        }
+    UDN="Xpertal", OWNER="Equipo Infra", xpeowner="diego@xpertal.com", proyecto="terraform", ambiente="dev"
+  }
 }
+
+
+  
+
+
