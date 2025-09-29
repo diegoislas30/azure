@@ -3,9 +3,7 @@ terraform {
     azurerm = { source = "hashicorp/azurerm", version = "~> 3.116" }
   }
 }
-provider "azurerm" {
-  features {}
-}
+
 
 provider "azurerm" {
   alias = "xpe_shared_poc"
