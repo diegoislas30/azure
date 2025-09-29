@@ -13,3 +13,13 @@ output "xp_rg_location" {
   value       = module.resource_group_xpeterraformpoc.resource_group_location
 }
 
+
+output "vnet_simple_id" {
+  description = "ID de la VNet simple"
+  value       = module.vnet_simple.vnet_id
+}
+
+output "vnet_simple_name" {
+  description = "Nombre de la VNet simple"
+  value       = module.vnet_simple.vnet_name
+}
