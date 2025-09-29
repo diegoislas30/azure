@@ -69,6 +69,10 @@ module "vnet_simple" {
   tags = {
     UDN="Xpertal", OWNER="Equipo Infra", xpeowner="diego@xpertal.com", proyecto="terraform", ambiente="dev"
   }
+
+  providers = {
+    azurerm = azurerm.xpe_shared_poc
+  }
 }
 
 
