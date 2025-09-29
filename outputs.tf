@@ -19,9 +19,3 @@ output "network_security_group_id" {
   value       = module.network_security_group.nsg_id
 }
 
-
-
-output "network_security_group2_id" {
-  description = "The ID of the second Network Security Group"
-  value       = module.network_security_group_2.nsg_id
-}
