@@ -9,4 +9,7 @@ module "resource_group" {
     proyecto = "terraform"
     ambiente = "dev"
   }
+  providers = {
+    azurerm = azurerm.XPERTAL-Shared-xcs
+  }
 }
