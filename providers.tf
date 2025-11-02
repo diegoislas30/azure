@@ -12,7 +12,7 @@ provider "azurerm" {
 }
 
 provider "azurerm" {
-  alias = "xpertal_shared_xcs"
+  alias = "XPERTAL-Shared-xcs"
   features {}
   subscription_id = "9442ead9-7f87-4f7a-b248-53e511abefd7"
 }
