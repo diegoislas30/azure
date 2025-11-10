@@ -19,6 +19,7 @@ provider "azurerm" {
 
 provider "azurerm" {
   alias = "Xpertal_XCS"
+  features {}
   subscription_id = "6d94fbd2-8182-4943-a9b3-53d236df5469"
 }
 
