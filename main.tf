@@ -16,7 +16,7 @@ module "rg-scxpeicmprd" {
 
  module "vnetxpeicm-prd" {
    source              = "./modules/vnets"
-   vnet_name           = vnetxpeicm-prd
+   vnet_name           = "vnetxpeicm-prd"
    location            = module.rg-scxpeicmprd.resource_group_location
    resource_group_name = module.rg-scxpeicmprd.resource_group_name
    address_space       = ["172.29.80.160/27"]
@@ -45,6 +45,6 @@ module "rg-scxpeicmprd" {
     }
  }
 
- 
+
    
 
