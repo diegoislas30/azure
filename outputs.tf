@@ -1,29 +1,15 @@
-output "terraform_rg_name" {
+output "rg-scxpeicmprd-name" {
   description = "Nombre del Resource Group"
-  value       = module.resource_group.resource_group_name
+  value       = module.rg-scxpeicmprd.resource_group_name
 }
 
-output "terraform_rg_id" {
+output "rg-scxpeicmprd-id" {
   description = "ID del Resource Group"
-  value       = module.resource_group.resource_group_id
+  value       = module.rg-scxpeicmprd.resource_group_id
 }
 
-output "terraform_rg_location" {
+output "rg-scxpeicmprd-location" {
   description = "Location del Resource Group"
-  value       = module.resource_group.resource_group_location
+  value       = module.rg-scxpeicmprd.resource_group_location
 }
 
-output "terraform_rg_name_2" {
-  description = "Nombre del Resource Group"
-  value       = module.resource_group_xpeterraformpoc_2.resource_group_name
-}
-
-output "terraform_rg_id_2" {
-  description = "ID del Resource Group"
-  value       = module.resource_group_xpeterraformpoc_2.resource_group_id
-}
-
-output "terraform_rg_location_2" {
-  description = "Location del Resource Group"
-  value       = module.resource_group_xpeterraformpoc_2.resource_group_location
-}
