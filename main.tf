@@ -25,7 +25,7 @@ module "rg-scxpeicmprd" {
 
       {
         name           = "snet-xpeicm-prd"
-        address_prefix = "172.29.80.192/27"
+        address_prefix = "172.29.80.160/27"
         service_endpoints = []
         delegations       = []
         private_endpoint_network_policies_enabled = false
