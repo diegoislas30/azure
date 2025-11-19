@@ -27,15 +27,13 @@ module "rg-scxpeicmprd" {
         name           = "snet-xpeicm-prd"
         address_prefix = "172.29.80.160/27"
         service_endpoints = []
-        delegations       = [
-          {
-            name = "Microsoft.Web/serverFarms"
-            service_delegation = {
-              name    = "Microsoft.Web/serverFarms"
-              actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-            }
+        delegation = {
+          name = "Microsoft.Web/serverFarms"
+          service_delegation = {
+            name    = "Microsoft.Web/serverFarms"
+            actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
           }
-        ]
+        }
         private_endpoint_network_policies_enabled = false
       }
    ]
@@ -66,19 +64,17 @@ module "xpe-vneticmsqlmidb-prd" {
         name           = "snet-xpeicm-prd"
         address_prefix = "172.29.80.192/27"
         service_endpoints = []
-        delegations       = [
-          {
-            name = "Microsoft.Sql/managedInstances"
-            service_delegation = {
-              name    = "Microsoft.Sql/managedInstances"
-              actions = [
-                "Microsoft.Network/virtualNetworks/subnets/join/action",
-                "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-                "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"
-              ]
-            }
+        delegation = {
+          name = "Microsoft.Sql/managedInstances"
+          service_delegation = {
+            name    = "Microsoft.Sql/managedInstances"
+            actions = [
+              "Microsoft.Network/virtualNetworks/subnets/join/action",
+              "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+              "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"
+            ]
           }
-        ]
+        }
         private_endpoint_network_policies_enabled = false
       }
    ]
