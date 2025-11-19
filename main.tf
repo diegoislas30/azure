@@ -21,13 +21,21 @@ module "rg-scxpeicmprd" {
    resource_group_name = module.rg-scxpeicmprd.resource_group_name
    address_space       = ["172.29.80.160/27"]
 
-   subnets = [  
+   subnets = [
 
       {
         name           = "snet-xpeicm-prd"
         address_prefix = "172.29.80.160/27"
         service_endpoints = []
-        delegations       = []
+        delegations       = [
+          {
+            name = "Microsoft.Web/serverFarms"
+            service_delegation = {
+              name    = "Microsoft.Web/serverFarms"
+              actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+            }
+          }
+        ]
         private_endpoint_network_policies_enabled = false
       }
    ]
@@ -52,13 +60,25 @@ module "xpe-vneticmsqlmidb-prd" {
    resource_group_name = module.rg-scxpeicmprd.resource_group_name
    address_space       = ["172.29.80.192/27"]
 
-   subnets = [  
+   subnets = [
 
       {
         name           = "snet-xpeicm-prd"
         address_prefix = "172.29.80.192/27"
         service_endpoints = []
-        delegations       = []
+        delegations       = [
+          {
+            name = "Microsoft.Sql/managedInstances"
+            service_delegation = {
+              name    = "Microsoft.Sql/managedInstances"
+              actions = [
+                "Microsoft.Network/virtualNetworks/subnets/join/action",
+                "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+                "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"
+              ]
+            }
+          }
+        ]
         private_endpoint_network_policies_enabled = false
       }
    ]
