@@ -109,8 +109,14 @@ variable "network_acls_ip_rules" {
   default     = []
 }
 
-variable "network_acls_subnet_ids" {
-  description = "Lista de IDs de subnets permitidas"
+variable "vnet_subnet_ids" {
+  description = "Map de subnet IDs del módulo vnets (output subnet_ids del módulo vnets)"
+  type        = map(string)
+  default     = {}
+}
+
+variable "network_acls_subnet_names" {
+  description = "Lista de nombres de subnets permitidas (deben existir en vnet_subnet_ids)"
   type        = list(string)
   default     = []
 }
@@ -135,8 +141,8 @@ variable "private_endpoint_enabled" {
   default     = false
 }
 
-variable "private_endpoint_subnet_id" {
-  description = "ID de la subnet donde se creará el Private Endpoint (requerido si private_endpoint_enabled = true)"
+variable "private_endpoint_subnet_name" {
+  description = "Nombre de la subnet donde se creará el Private Endpoint (debe existir en vnet_subnet_ids)"
   type        = string
   default     = null
 }

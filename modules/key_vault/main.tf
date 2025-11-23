@@ -1,6 +1,19 @@
 # ================== Data sources ==================
 data "azurerm_client_config" "current" {}
 
+# ================== Locals ==================
+locals {
+  # Convertir nombres de subnets a IDs para Network ACLs
+  network_acls_subnet_ids = [
+    for subnet_name in var.network_acls_subnet_names :
+    lookup(var.vnet_subnet_ids, subnet_name, null)
+    if lookup(var.vnet_subnet_ids, subnet_name, null) != null
+  ]
+
+  # Obtener el subnet ID para el Private Endpoint
+  private_endpoint_subnet_id = var.private_endpoint_enabled && var.private_endpoint_subnet_name != null ? lookup(var.vnet_subnet_ids, var.private_endpoint_subnet_name, null) : null
+}
+
 # ================== Key Vault ==================
 resource "azurerm_key_vault" "this" {
   name                = var.name
@@ -24,7 +37,7 @@ resource "azurerm_key_vault" "this" {
       bypass                     = var.network_acls_bypass
       default_action             = var.network_acls_default_action
       ip_rules                   = var.network_acls_ip_rules
-      virtual_network_subnet_ids = var.network_acls_subnet_ids
+      virtual_network_subnet_ids = local.network_acls_subnet_ids
     }
   }
 
@@ -37,7 +50,7 @@ resource "azurerm_private_endpoint" "this" {
   name                = "${var.name}-pe"
   location            = var.location
   resource_group_name = var.rg_name
-  subnet_id           = var.private_endpoint_subnet_id
+  subnet_id           = local.private_endpoint_subnet_id
 
   private_service_connection {
     name                           = "${var.name}-psc"
